@@ -1,0 +1,86 @@
+<!-- Navbar -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
+<nav class="navbar navbar-expand navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <!--Sidebar button-->
+        <button class="btn btn-dark side-btn mx-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="offcanvasExample">
+        <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <a class="navbar-brand fw-bold" >Grontball</a>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+
+        </div>
+    </div>
+</nav>
+<!-- Sidebar -->
+
+<div class="offcanvas offcanvas-start sidecustomcolor text-white sidebar" data-bs-scroll="true" 
+    data-bs-backdrop="false" tabindex="-1" id="sidebar" aria-labelledby="offcanvasDarkLabel">
+    <div class="offcanvas-body sidebar_body">
+        <nav class="navbar-dark">
+            <ul class="navbar-nav">
+                <li class="my-2">
+                    <a id="gotoadmain" class="text-muted small fw-bold text-uppercase text-decoration-none" 
+                   >Strona główna</a>
+                </li>
+                <li class="my-3">
+                    <hr class="dropdown divider">
+                </li>
+                <li>
+                    <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link"
+                    data-bs-toggle="collapse" href="#users_collapse" role="button"  aria-controls="users_collapse" 
+                    aria-expanded="false" id="users_collapse_btn">Użytkownicy
+                        <span class="bi bi-chevron-right right-icon ms-auto"></span>
+                    </a>
+                    <div class="collapse" id="users_collapse">
+                        <a  id="user_lists" class="nav-link text-muted">
+                            Lista użytkowników
+                        </a>
+                        <a  class="nav-link text-muted" id="addus">
+                            Dodawanie użytkowników
+                        </a>
+                        <hr class="divider ">
+                        <a  id="mn_list" class="nav-link text-muted">
+                            Lista menedżerów contentu
+                        </a>
+                        <a class="nav-link text-muted" id="addman">
+                            Dodawanie menedżerów contentu
+                        </a>
+                      
+                    </div>
+                </li>
+                <li class="my-3">
+                    <hr class="dropdown divider">
+                </li>
+                <li>
+                    <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link "
+                    data-bs-toggle="collapse" id="content_collapse_btn" href="#content_collapse" role="button" 
+                    aria-expanded="false" aria-controls="content_collapse">Produkty
+                        <span class="bi bi-chevron-right right-icon ms-auto"></span>
+                    </a>
+                    <div class="collapse" id="content_collapse">
+                        <a  id="prd_list" class="nav-link text-muted">
+                            Lista produktów
+                        </a>
+                        <a  id="uc_prd_list" class="nav-link text-muted">
+                            Lista produktów bez kategorii
+                        </a>
+                        <a  id="additem" class="nav-link text-muted">
+                            Dodaj produkty
+                        </a>
+
+                        <hr class="divider">
+
+                        <a  class="nav-link text-muted" id="cat_list">
+                            Lista katalogów
+                        </a>
+                        <a id="addcat" class="nav-link text-muted">
+                            Dodaj katalog
+                        </a>                       
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
