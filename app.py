@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Admin123@localhost/grontball'
+app.config['SECRET_KEY'] = "Arek"
+
 
 @app.route('/')
 
