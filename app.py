@@ -11,7 +11,7 @@ def index():
 #invalid URL
 @app.errorhandler(404)
 
-#lol
+#lol2
 def not_found(e):
     return render_template("404.html"), 404
 
