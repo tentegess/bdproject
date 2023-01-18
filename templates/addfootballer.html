@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="text-muted headers-padding">Dodawanie Piłkarza</h1> 
+    <hr class="divider mt-0">
+
+      <div class="headers-padding my-0 py-0" style="padding-right: 15px;">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+
+    <div class="container" style="max-width:720px;">
+        <form action="#", method="POST" autocomplete="off">
+            <div class="row m-2">
+                <div class="col-6">
+                  <label for="name">Imię</label>
+                  <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
+                      {% if name is defined %} value="{{name}}" {% endif %}
+                  Required>
+                </div>
+                <div class="col-6">
+                  <label for="lastname">Nazwisko</label>
+                  <input type="text" id="lastname" class="form-control" name="lastname" placeholder="Nazwisko" 
+                      {% if lastname is defined %} value="{{lastname}}" {% endif %}
+
+                  Required>
+                </div>
+              </div>
+              <div class="row m-2">
+                <div class="float-end">
+                    <button type="submit" name="ftsub" class="btn btn-primary">Dodaj</button>
+                </div>
+              </div>
+        </form>
+    </div>
+{% endblock  %}
+
+{% block script %}
+    <script>
+        document.getElementById('ft_collapse').classList.add('show');
+        document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('addft').setAttribute('style', 'color:white !important');
+    </script
+{% endblock %}

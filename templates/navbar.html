@@ -7,7 +7,7 @@
         <span class="navbar-toggler-icon"></span>
         </button>
 
-        <a class="navbar-brand fw-bold" >Grontball</a>
+        <a class="navbar-brand fw-bold" href="{{url_for('index')}}" >Grontball</a>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
 
         </div>
@@ -22,30 +22,23 @@
             <ul class="navbar-nav">
                 <li class="my-2">
                     <a id="gotoadmain" class="text-muted small fw-bold text-uppercase text-decoration-none" 
-                   >Strona główna</a>
+                    href="{{url_for('index')}}">Strona główna</a>
                 </li>
                 <li class="my-3">
                     <hr class="dropdown divider">
                 </li>
                 <li>
                     <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link"
-                    data-bs-toggle="collapse" href="#users_collapse" role="button"  aria-controls="users_collapse" 
-                    aria-expanded="false" id="users_collapse_btn">Użytkownicy
+                    data-bs-toggle="collapse" href="#ft_collapse" role="button"  aria-controls="ft_collapse" 
+                    aria-expanded="false" id="ft_collapse_btn">Piłkarze
                         <span class="bi bi-chevron-right right-icon ms-auto"></span>
                     </a>
-                    <div class="collapse" id="users_collapse">
-                        <a  id="user_lists" class="nav-link text-muted">
-                            Lista użytkowników
+                    <div class="collapse" id="ft_collapse">
+                        <a  id="ft_lists" class="nav-link text-muted" href="{{url_for('list_of_ft')}}">
+                            Lista Piłkarzy
                         </a>
-                        <a  class="nav-link text-muted" id="addus">
-                            Dodawanie użytkowników
-                        </a>
-                        <hr class="divider ">
-                        <a  id="mn_list" class="nav-link text-muted">
-                            Lista menedżerów contentu
-                        </a>
-                        <a class="nav-link text-muted" id="addman">
-                            Dodawanie menedżerów contentu
+                        <a  class="nav-link text-muted" id="addft" href="{{url_for('addft')}}">
+                            Dodawanie Piłkarza
                         </a>
                       
                     </div>

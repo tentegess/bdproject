@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-muted headers-padding">Lista Piłkarzy</h1>
+    <hr class="divider mt-0">
+    <div class="headers-padding" style="padding-right: 15px;">
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+
+    </div>
+
+{% endblock  %}
+
+{% block script %}
+    <script>
+        document.getElementById('ft_collapse').classList.add('show');
+        document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('ft_lists').setAttribute('style', 'color:white !important');
+    </script
+{% endblock %}
