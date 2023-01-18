@@ -11,7 +11,26 @@
 
     </div>
 
+    <table class="table text-center">
+        <thead>
+            <tr>
+                {% for header in headings %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+            {% for value in row %}
+                <tr>
+                    <td>{{ value.name }}</td>
+                </tr>
+            {% endfor %}
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
 {% endblock  %}
+
+
 
 {% block script %}
     <script>
@@ -19,5 +38,5 @@
         document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
         document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
         document.getElementById('ft_lists').setAttribute('style', 'color:white !important');
-    </script
+    </script>
 {% endblock %}

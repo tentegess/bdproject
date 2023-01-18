@@ -1,17 +1,18 @@
 from flask import Flask, url_for, render_template, request, redirect, flash, session
-from flask_mysqldb import MySQL
+import mysql.connector
 import yaml
 
 app = Flask(__name__)
 
 #Configure db
 db = yaml.safe_load(open('static/db.yaml'))
-app.config['MYSQL_HOST'] = db['mysql_host']
-app.config['MYSQL_USER'] = db['mysql_user']
-app.config['MYSQL_PASSWORD'] = db['mysql_password']
-app.config['MYSQL_DB'] = db['mysql_db']
 
-mysql=MySQL(app)
+mysql = mysql.connector.connect(
+    host = db['mysql_host'],
+    user = db['mysql_user'],
+    password = db['mysql_password'],
+    database = db['mysql_db']
+)
 
 app.config['SECRET_KEY']="Arek"
 
@@ -20,9 +21,9 @@ app.config['SECRET_KEY']="Arek"
 @app.route('/')
 
 def index():
-    cur = mysql.connection.cursor()
+    cur = mysql.cursor()
     #cur.execute("INSERT INTO footballer(name, lastName) VALUES('Marcin','Najman')")
-    mysql.connection.commit()
+    mysql.commit()
     cur.close()
     return render_template("index.html")
 
@@ -37,9 +38,9 @@ def addft():
         lastname=request.form['lastname']
         
         if name and lastname:
-            cur = mysql.connection.cursor()
+            cur = mysql.cursor()
             cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
-            mysql.connection.commit()
+            mysql.commit()
             cur.close()
             flash("Pomyślnie dodano piłkarza","alert alert-success")
             return redirect(url_for("list_of_ft"))
@@ -52,11 +53,14 @@ def addft():
 @app.route('/list_of_footballers')
 
 def list_of_ft():
-    cur = mysql.connection.cursor()
-    #cur.execute("INSERT INTO footballer(name, lastName) VALUES('Marcin','Najman')")
-    mysql.connection.commit()
+    headings = ('Lp.', "Imie i Nazwisko", "Pozycja", "Drużyna", "Lista akcji", "Historia")
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("SELECT name, lastName FROM footballer")
+    test = cur.fetchall()
+    mysql.commit()
     cur.close()
-    return render_template("list_of_ft.html")
+
+    return render_template("list_of_ft.html", headings=headings, row=test)
 
 @app.route('/add_footballer', methods=["POST","GET"])
 
