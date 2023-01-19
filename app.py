@@ -56,12 +56,14 @@ def list_of_ft():
     headings = ('Lp.', "Imie i Nazwisko", "Pozycja", "Drużyna", "Lista akcji", "Historia")
     cur = mysql.cursor(dictionary=True)
     cur.execute("""
-                SELECT CONCAT(f.name, ' ', f.lastName) AS nameLastname, 
-                GROUP_CONCAT(p.name SEPARATOR ', ') as position
-                FROM footballer as f 
-                LEFT JOIN positionhistory as ph ON f.id = ph.id_footballer
-                LEFT JOIN position as p ON p.id = ph.id_position
-                WHERE ph.dateEND is NULL""")
+                SELECT CONCAT(f.name, ' ', f.lastName) AS nameLastname,
+                COALESCE(
+                    (SELECT GROUP_CONCAT(p.name SEPARATOR ', ') 
+                    FROM positionhistory as ph 
+                    JOIN position as p ON p.id = ph.id_position 
+                    WHERE ph.id_footballer = f.id
+                    ), 'brak pozycji') as position
+                FROM footballer as f""")
     test = cur.fetchall()
     mysql.commit()
     cur.close()
