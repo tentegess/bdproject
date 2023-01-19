@@ -16,13 +16,13 @@
                 <div class="col-6">
                   <label for="name">Imię</label>
                   <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
-                      {% if name is defined %} value="{{name}}" {% endif %}
+                      value="{{request.form.name}}"
                   Required>
                 </div>
                 <div class="col-6">
                   <label for="lastname">Nazwisko</label>
                   <input type="text" id="lastname" class="form-control" name="lastname" placeholder="Nazwisko" 
-                      {% if lastname is defined %} value="{{lastname}}" {% endif %}
+                  value="{{request.form.lastname}}"
 
                   Required>
                 </div>

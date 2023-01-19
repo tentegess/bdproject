@@ -46,7 +46,7 @@ def addft():
             return redirect(url_for("list_of_ft"))
         else:
             flash("Należy uzupełnić dane","alert alert-danger")
-            return render_template("addfootballer.html", name=name, lastname=lastname)   
+            return render_template("addfootballer.html")   
     else:    
         return render_template("addfootballer.html")
 
