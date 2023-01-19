@@ -20,7 +20,9 @@
             </tr>
             {% for value in row %}
                 <tr>
-                    <td>{{ value.name }}</td>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ value.nameLastname }}</td>
+                    <td>{{ value.position }}</td>
                 </tr>
             {% endfor %}
         </thead>
