@@ -1,4 +1,5 @@
 from flask import Flask, url_for, render_template, request, redirect, flash, session
+from psycopg2 import sql
 import mysql.connector
 import yaml
 
@@ -53,22 +54,43 @@ def addft():
 @app.route('/list_of_footballers')
 
 def list_of_ft():
-    headings = ('Lp.', "Imie i Nazwisko", "Pozycja", "Drużyna", "Lista akcji", "Historia")
+    headings = ['Lp.', "Imie i Nazwisko", "Pozycja", "Drużyna"]
     cur = mysql.cursor(dictionary=True)
+    cur.execute("SELECT id, name FROM actions")
+    action_list = cur.fetchall()
+    headings += list(map(lambda x: x['name'], action_list))
+    action_list_values = []
+
+    for action in action_list:
+        cur.execute("""
+                    SELECT COUNT(a.name) as counted, f.id 
+                    FROM footballer as f
+                    LEFT JOIN actionsinmatch as am ON am.id_footballer = f.id
+                    LEFT JOIN actions as a  ON a.id = am.id_action AND a.name = %s
+                    GROUP BY f.id ORDER BY f.id""", (action['name'],))    
+        action_list_values.append(cur.fetchall())
+
+
     cur.execute("""
-                SELECT CONCAT(f.name, ' ', f.lastName) AS nameLastname,
+                SELECT CONCAT(f.name, ' ', f.lastName) AS nameLastname, f.id,
                 COALESCE(
                     (SELECT GROUP_CONCAT(p.name SEPARATOR ', ') 
                     FROM positionhistory as ph 
                     JOIN position as p ON p.id = ph.id_position 
                     WHERE ph.id_footballer = f.id
-                    ), 'brak pozycji') as position
-                FROM footballer as f""")
-    test = cur.fetchall()
+                    ), 'Brak pozycji') as position,
+                COALESCE(t.name, 'Brak druzyny') as team 
+                FROM footballer as f 
+                LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
+                LEFT JOIN teams as t ON ch.id_team = t.id
+                GROUP BY nameLastname ORDER BY f.id""")
+
+    table_content = cur.fetchall()
     mysql.commit()
     cur.close()
 
-    return render_template("list_of_ft.html", headings=headings, row=test)
+
+    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values)
 
 @app.route('/add_footballer', methods=["POST","GET"])
 

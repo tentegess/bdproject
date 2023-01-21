@@ -18,15 +18,20 @@
                     <th>{{ header }}</th>
                 {% endfor %}
             </tr>
+        </thead>
+        <tbody>
             {% for value in row %}
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ value.nameLastname }}</td>
                     <td>{{ value.position }}</td>
+                    <td>{{ value.team }}</td>
+                    {% set outer_loop = loop %}
+                        {% for i in range(actions|length) %}
+                            <td>{{ actions[i][outer_loop.index-1].counted  }}</td>
+                        {% endfor %}
                 </tr>
             {% endfor %}
-        </thead>
-        <tbody>
         </tbody>
     </table>
 
