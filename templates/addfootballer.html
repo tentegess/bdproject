@@ -13,20 +13,36 @@
     <div class="container" style="max-width:720px;">
         <form action="#", method="POST" autocomplete="off">
             <div class="row m-2">
+              <h5 class="text-muted headers-padding">Dane piłkarza</h5> 
                 <div class="col-6">
                   <label for="name">Imię</label>
                   <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
-                      value="{{request.form.name}}"
-                  Required>
+                      value="{{request.form.name}}" Required>
                 </div>
                 <div class="col-6">
                   <label for="lastname">Nazwisko</label>
                   <input type="text" id="lastname" class="form-control" name="lastname" placeholder="Nazwisko" 
-                  value="{{request.form.lastname}}"
-
-                  Required>
+                  value="{{request.form.lastname}}" Required>
                 </div>
               </div>
+
+              <div class="row m-2">
+                <h5 class="text-muted headers-padding">Drużyna</h5> 
+                <div class="col-6">
+                  <label for="team">Drużyna</label>
+                    <select class="form-select" name="actual_team">
+                      <option selected></option>
+                      {% for team in teams%}
+                        <option value="{{team.id}}">{{team.name}}</option>
+                      {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                  <label for="dateFrom">Data dołączenia</label>
+                  <input type="date" class="form-control" id="dateFrom" name="dateFrom_team">
+                </div>
+              </div>
+
               <div class="row m-2">
                 <div class="float-end">
                     <button type="submit" name="ftsub" class="btn btn-primary">Dodaj</button>

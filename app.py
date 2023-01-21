@@ -33,6 +33,11 @@ def index():
 @app.route('/add_footballer', methods=["POST","GET"])
 
 def addft():
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("SELECT id, name FROM teams")
+    teams_list=cur.fetchall()
+    cur.close()
+    
     if request.method == "POST":
         
         name=request.form['name']
@@ -40,16 +45,27 @@ def addft():
         
         if name and lastname:
             cur = mysql.cursor()
-            cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
-            mysql.commit()
-            cur.close()
-            flash("Pomyślnie dodano piłkarza","alert alert-success")
-            return redirect(url_for("list_of_ft"))
+            try:
+                cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
+                if request.form['actual_team'] and request.form['dateFrom_team']:
+                    last_ft_id=cur.lastrowid
+                    actual_team=request.form['actual_team']
+                    dateFrom_team=request.form['dateFrom_team']
+                    cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,actual_team,dateFrom_team))
+                mysql.commit()
+                cur.close()
+                flash("Pomyślnie dodano piłkarza","alert alert-success")
+                return redirect(url_for("list_of_ft"))
+            except Exception:
+                mysql.rollback()
+                cur.close()
+                flash("Wystąpił błąd w bazie danych","alert alert-danger")
+                return render_template("addfootballer.html", teams=teams_list)  
         else:
             flash("Należy uzupełnić dane","alert alert-danger")
-            return render_template("addfootballer.html")   
+            return render_template("addfootballer.html", teams=teams_list)   
     else:    
-        return render_template("addfootballer.html")
+        return render_template("addfootballer.html", teams=teams_list)
 
 @app.route('/list_of_footballers')
 
@@ -83,14 +99,14 @@ def list_of_ft():
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
                 LEFT JOIN teams as t ON ch.id_team = t.id
-                GROUP BY nameLastname ORDER BY f.id""")
+                GROUP BY f.id ORDER BY f.id""")
 
     table_content = cur.fetchall()
     mysql.commit()
     cur.close()
 
 
-    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values)
+    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values,)
 
 @app.route('/add_footballer', methods=["POST","GET"])
 
