@@ -109,9 +109,9 @@
   transform: rotate(270deg);
 }
 
-.siderbar-link{
-    color:#61757D;
-}
+
+
+ul.navbar-nav a:hover { color: #fff !important; }
 
 .lg-custom{
   margin-left: 5px !important; 

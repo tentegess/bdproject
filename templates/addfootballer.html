@@ -12,8 +12,8 @@
 
     <div class="container" style="max-width:720px;">
         <form action="#", method="POST" autocomplete="off">
-            <div class="row m-2">
-              <h5 class="text-muted headers-padding">Dane piłkarza</h5> 
+            <div class="row my-2">
+              <h5 class="text-muted">Dane piłkarza</h5> 
                 <div class="col-6">
                   <label for="name">Imię</label>
                   <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
@@ -26,12 +26,12 @@
                 </div>
               </div>
 
-              <div class="row m-2">
-                <h5 class="text-muted headers-padding">Drużyna</h5> 
+              <div class="row my-2">
+                <h5 class="text-muted mt-2">Drużyna</h5> 
                 <div class="col-6">
                   <label for="team">Drużyna</label>
-                    <select class="form-select" name="actual_team">
-                      <option selected></option>
+                    <select class="form-select req_team" name="actual_team" onchange="checkTeam()">
+                      <option value="" disabled selected hidden>Wybierz drużynę</option>
                       {% for team in teams%}
                         <option value="{{team.id}}">{{team.name}}</option>
                       {% endfor %}
@@ -39,11 +39,16 @@
                 </div>
                 <div class="col-6">
                   <label for="dateFrom">Data dołączenia</label>
-                  <input type="date" class="form-control" id="dateFrom" name="dateFrom_team">
+                  <input type="date" class="form-control req_team" id="dateFrom" name="dateFrom_team" onchange="checkTeam()">
                 </div>
               </div>
 
-              <div class="row m-2">
+              <h6 class="text-muted mt-2">Historia drużyn</h6> 
+              <div id="ct">
+              </div>
+              <button type="button" class="btn btn-success btn-sm" id="addTeamHis"><i class="bi bi-plus-lg"></i></button>
+              <div class="row my-2">
+                <hr class="divider mb-1">
                 <div class="float-end">
                     <button type="submit" name="ftsub" class="btn btn-primary">Dodaj</button>
                 </div>
@@ -58,5 +63,63 @@
         document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
         document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
         document.getElementById('addft').setAttribute('style', 'color:white !important');
+
+        var team_ids=[
+        {% for team in teams%}
+          {{team.id}}
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        var team_names=[
+        {% for team in teams%}
+          '{{team.name}}'
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        $(document).ready(function(){
+            $("#addTeamHis").prop('disabled',true)
+
+        })
+
+
+       
+
+        function checkTeam(){
+          let inputs = document.getElementsByClassName('req_team');
+          var invalid;
+          for (var i=0; i<inputs.length; i++){
+            if(inputs[i].value.trim()=="" || inputs[i].value==null){
+              invalid=true;
+              break;
+            }
+            else{
+              invalid=false;
+            }
+          }  
+          $("#addTeamHis").prop('disabled',invalid)
+        }
+
+        $("#addTeamHis").click(function(){
+          var html='';
+          html+="<div class='row my-2'>"
+          html+="<div class='col-6'>"
+          html+="<select class='form-select req_team' name='history_team[]' onchange='checkTeam()'>"
+          html+="<option value='' disabled selected hidden>Wybierz drużynę</option>"
+          for(var i=0; i<team_ids.length; i++){
+            html+="<option value='"+team_ids[i]+"'>"+team_names[i]+"</option>"
+          }
+          html+="</select>"
+          html+="</div>"
+          html+="<div class='col-5'>"
+          html+="<input type='date' class='form-control req_team' name='historydateFrom_team[]' onchange='checkTeam()'>"
+          html+="</div>"
+          html+="<div class='col-1 ps-1'>"
+          html+="<button type='button' class='btn btn-danger'><i class='bi bi-dash-lg'></i></button>"  
+          html+="</div>"
+          $("#ct").append(html)
+          checkTeam();
+        })
     </script
 {% endblock %}
