@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-6">
                   <label for="dateFrom">Data dołączenia</label>
-                  <input type="date" class="form-control req_team" id="dateFrom" name="dateFrom_team" onchange="checkTeam()">
+                  <input type="date" class="form-control req_team team_date" id="dateFrom" name="dateFrom_team" onchange="checkTeam(); changeMaxTeam()">
                 </div>
               </div>
 
@@ -102,10 +102,16 @@
         }
 
         $("#addTeamHis").click(function(){
+          var maxDate=document.getElementById("dateFrom").value
+          var date=new Date(maxDate)
+          date.setDate((date.getDate()-1))
+          date=date.toLocaleString().split(',')[0]
+          dates=date.split('.')
+          maxDate=dates[2]+'-'+dates[1]+'-'+dates[0]
           var html='';
           html+="<div class='row my-2'>"
           html+="<div class='col-6'>"
-          html+="<select class='form-select req_team' name='history_team[]' onchange='checkTeam()'>"
+          html+="<select class='form-select req_team' name='history_team[]' onchange='checkTeam()' Required>"
           html+="<option value='' disabled selected hidden>Wybierz drużynę</option>"
           for(var i=0; i<team_ids.length; i++){
             html+="<option value='"+team_ids[i]+"'>"+team_names[i]+"</option>"
@@ -113,13 +119,36 @@
           html+="</select>"
           html+="</div>"
           html+="<div class='col-5'>"
-          html+="<input type='date' class='form-control req_team' name='historydateFrom_team[]' onchange='checkTeam()'>"
+          html+="<input type='date' class='form-control req_team team_date' name='historydateFrom_team[]' max='"+maxDate+"' onchange='checkTeam()' Required>"
           html+="</div>"
           html+="<div class='col-1 ps-1'>"
-          html+="<button type='button' class='btn btn-danger'><i class='bi bi-dash-lg'></i></button>"  
+          html+="<button type='button' class='btn btn-danger rm_team'><i class='bi bi-dash-lg'></i></button>"  
           html+="</div>"
           $("#ct").append(html)
           checkTeam();
         })
+
+        $(document).on('click', '.rm_team', function(){
+          let row=$(this).parent().parent();
+          $(row).remove();
+          checkTeam();
+        })
+
+        function changeMaxTeam(){
+          var maxDate=document.getElementById("dateFrom").value
+          var date=new Date(maxDate)
+          date.setDate((date.getDate()-1))
+          date=date.toLocaleString().split(',')[0]
+          dates=date.split('.')
+          maxDate=dates[2]+'-'+dates[1]+'-'+dates[0]
+
+          let inputs = document.getElementsByClassName('team_date');
+          if(inputs.length>1){
+            for (var i=1; i<inputs.length; i++){
+              $(inputs[i]).attr('max',maxDate)
+            }  
+          }
+        }
+
     </script
 {% endblock %}

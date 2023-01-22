@@ -42,16 +42,29 @@ def addft():
         
         name=request.form['name']
         lastname=request.form['lastname']
+        actual_team=request.form.get('actual_team')
+        dateFrom_team=request.form.get('dateFrom_team')
         
         if name and lastname:
             cur = mysql.cursor()
             try:
                 cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
-                if request.form['actual_team'] and request.form['dateFrom_team']:
+                
+                if actual_team and dateFrom_team:
+                    print(request.form['actual_team'])
+                    print(request.form['dateFrom_team'])
+                    print("test")
                     last_ft_id=cur.lastrowid
-                    actual_team=request.form['actual_team']
-                    dateFrom_team=request.form['dateFrom_team']
                     cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,actual_team,dateFrom_team))
+                    if request.form.getlist('historydateFrom_team[]') and request.form.getlist('history_team[]'):
+                        if len(request.form.getlist('historydateFrom_team[]')) == len(request.form.getlist('history_team[]')):
+                            history_teams=request.form.getlist('history_team[]')
+                            teams_dates=request.form.getlist('historydateFrom_team[]')
+                            for i in range(0, len(request.form.getlist('historydateFrom_team[]'))):
+                                cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,history_teams[i], teams_dates[i]))
+                        else:
+                            flash("liczba klubów jest różna od liczby dat","alert alert-danger")
+                            return render_template("addfootballer.html", teams=teams_list)          
                 mysql.commit()
                 cur.close()
                 flash("Pomyślnie dodano piłkarza","alert alert-success")
