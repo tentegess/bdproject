@@ -74,7 +74,7 @@ def list_of_ft():
     cur = mysql.cursor(dictionary=True)
     cur.execute("SELECT id, name FROM actions")
     action_list = cur.fetchall()
-    headings += list(map(lambda x: x['name'], action_list))
+    headings += list(map(lambda x: x['name'], action_list)) + ['Historia']
     action_list_values = []
 
     for action in action_list:
@@ -99,6 +99,7 @@ def list_of_ft():
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
                 LEFT JOIN teams as t ON ch.id_team = t.id
+                WHERE dateFrom = (SELECT MAX(dateFROM) FROM clubhistory WHERE id_footballer = f.id ) OR dateFROM IS NULL
                 GROUP BY f.id ORDER BY f.id""")
 
     table_content = cur.fetchall()
@@ -107,6 +108,52 @@ def list_of_ft():
 
 
     return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values,)
+
+
+@app.route('/footballer_history/<footballer_id>')
+
+def footballerHistory(footballer_id):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("SELECT CONCAT(f.name, ' ', f.lastName) as last_name FROM footballer as f WHERE f.id = %s", (footballer_id,))    
+    name = cur.fetchall()
+
+    cur.execute("""
+                SELECT t.name AS club_name, dateFrom
+                FROM footballer as f 
+                LEFT JOIN clubhistory AS ch ON f.id = ch.id_footballer
+                LEFT JOIN teams AS t ON t.id = ch.id_team
+                WHERE f.id = %s
+                GROUP BY dateFrom ORDER BY dateFrom DESC""", (footballer_id,))    
+    club_history_content = cur.fetchall()
+
+    cur.execute("""
+                SELECT CONCAT('Dodanie pozycji: ', p.name) as position, dateFrom as date
+                FROM footballer as f 
+                LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
+                LEFT JOIN position AS p ON p.id = ph.id_position
+                WHERE f.id = %s
+                UNION ALL
+                SELECT CONCAT('Usunięcie pozycji: ', p.name) as position, dateEnd as date
+                FROM footballer as f 
+                LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
+                LEFT JOIN position AS p ON p.id = ph.id_position
+                WHERE f.id = %s AND dateEnd is not NULL
+                GROUP BY ph.id_position, ph.id_footballer, date ORDER BY date DESC
+                """, (footballer_id,footballer_id))    
+    position_history_content = cur.fetchall()
+
+    cur.execute("""
+                SELECT 
+                FROM footballer as f 
+                LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
+                LEFT JOIN position AS p ON p.id = ph.id_position
+                WHERE f.id = %s
+                GROUP BY ph.id_position, ph.id_footballer, date ORDER BY date DESC
+                """, (footballer_id,footballer_id))    
+    position_history_content = cur.fetchall()
+
+    return render_template("footballer_history.html", footballer_name=name[0], clubs=club_history_content, positions=position_history_content)
+
 
 @app.route('/add_footballer', methods=["POST","GET"])
 

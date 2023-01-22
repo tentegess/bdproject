@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-muted headers-padding">{{ footballer_name.last_name }}</h1>
+    <hr class="divider mt-0">
+    <div class="headers-padding" style="padding-right: 15px;">
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+
+    </div>
+
+    <h4 class="text-muted headers-padding"> Historia klubów </h1>
+    {% for club in clubs %}
+        <p>{{club.dateFrom}} {{ club.club_name }}</p>
+    {% endfor %}
+
+    <h4 class="text-muted headers-padding"> Historia pozycji </h1>
+    {% for position in positions %}
+        <p>{{position.date}} {{position.position}}</p>
+    {% endfor %}
+
+    <h4 class="text-muted headers-padding"> Historia meczy </h1>
+        {% for position in positions %}
+            <p>{{position.date}} {{position.position}}</p>
+        {% endfor %}
+    
+
+{% endblock  %}
+
+
+
+{% block script %}
+    <script>
+        document.getElementById('ft_collapse').classList.add('show');
+        document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('ft_lists').setAttribute('style', 'color:white !important');
+    </script>
+{% endblock %}
