@@ -32,11 +32,17 @@
 
               <div class="row my-2">
                 <h5 class="text-muted mt-2">Pozycje</h5> 
-                        <select class="select2 form-select-lg" multiple id="positions" name="positions[]">
+                    <div class="col-6">
+                        <select class="select2 form-select-lg" multiple id="positions" name="positions[]" style="width: 100%;">
                               {% for position in positions%}
                                 <option value="{{position.id}}">{{position.name}}</option>
                               {% endfor %}
                         </select>
+                  </div>
+
+                  <div class="col-6">
+                    <input type="date" class="form-control" id="dateFrom" name="date_position">
+                  </div>
               </div>
 
               <div class="row my-2">
@@ -167,7 +173,6 @@
         }
 
         $('#positions').select2({
-          theme: 'bootstrap-5',
           placeholder: 'Wybierz Pozycje',
       });
 

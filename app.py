@@ -38,6 +38,8 @@ def addft():
     cur = mysql.cursor(dictionary=True)
     cur.execute("SELECT id, name FROM teams")
     teams_list=cur.fetchall()
+    cur.execute("SELECT id, name FROM position")
+    positions_list=cur.fetchall()
     cur.close()
     
     if request.method == "POST":
@@ -46,17 +48,15 @@ def addft():
         lastname=request.form['lastname']
         actual_team=request.form.get('actual_team')
         dateFrom_team=request.form.get('dateFrom_team')
+        positions=request.form.getlist('positions[]')
+        positions_date=request.form.get('date_position')
         
         if name and lastname:
             cur = mysql.cursor()
             try:
                 cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
-                
+                last_ft_id=cur.lastrowid
                 if actual_team and dateFrom_team:
-                    print(request.form['actual_team'])
-                    print(request.form['dateFrom_team'])
-                    print("test")
-                    last_ft_id=cur.lastrowid
                     cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,actual_team,dateFrom_team))
                     if request.form.getlist('historydateFrom_team[]') and request.form.getlist('history_team[]'):
                         if len(request.form.getlist('historydateFrom_team[]')) == len(request.form.getlist('history_team[]')):
@@ -66,7 +66,10 @@ def addft():
                                 cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,history_teams[i], teams_dates[i]))
                         else:
                             flash("liczba klubów jest różna od liczby dat","alert alert-danger")
-                            return render_template("addfootballer.html", teams=teams_list)          
+                            return render_template("addfootballer.html", teams=teams_list, positions=positions_list) 
+                if positions and positions_date:
+                    for i in range(0, len(request.form.getlist('positions[]'))):
+                        cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,positions[i],positions_date))
                 mysql.commit()
                 cur.close()
                 flash("Pomyślnie dodano piłkarza","alert alert-success")
@@ -75,12 +78,12 @@ def addft():
                 mysql.rollback()
                 cur.close()
                 flash("Wystąpił błąd w bazie danych","alert alert-danger")
-                return render_template("addfootballer.html", teams=teams_list)  
+                return render_template("addfootballer.html", teams=teams_list, positions=positions_list)  
         else:
             flash("Należy uzupełnić dane","alert alert-danger")
-            return render_template("addfootballer.html", teams=teams_list)   
+            return render_template("addfootballer.html", teams=teams_list, positions=positions_list)   
     else:    
-        return render_template("addfootballer.html", teams=teams_list)
+        return render_template("addfootballer.html", teams=teams_list, positions=positions_list)
 
 @app.route('/list_of_footballers')
 
