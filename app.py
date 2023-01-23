@@ -167,7 +167,7 @@ def footballerHistory(footballer_id):
     for i in range(len(club_history_content2)-1):
         cur.execute("""
                 SELECT ALL CONCAT(t1.name,' : ', t2.name) as game, date, COALESCE(
-                    (SELECT ALL GROUP_CONCAT(CONCAT(a.name, ': ', am.time,'min') SEPARATOR ', ') 
+                    (SELECT ALL GROUP_CONCAT(CONCAT(a.name, ': ', am.time,'min') ORDER BY am.time SEPARATOR ', ') 
                     FROM actionsinmatch as am 
                     JOIN actions as a ON a.id = am.id_action
                     WHERE am.id_match = g.id AND am.id_footballer = %s
@@ -177,9 +177,7 @@ def footballerHistory(footballer_id):
                 LEFT JOIN teams as t2 ON t2.id = g.id_away
                 WHERE (t1.name = %s OR t2.name = %s) AND date BETWEEN %s AND %s
                 """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
-        
         club_history_content3 += cur.fetchall()
-    print(club_history_content3)
 
     return render_template("footballer_history.html", footballer_name=name[0], clubs=club_history_content, positions=position_history_content, matches=club_history_content3)
 
