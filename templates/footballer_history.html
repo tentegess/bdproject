@@ -22,8 +22,8 @@
     {% endfor %}
 
     <h4 class="text-muted headers-padding"> Historia meczy </h1>
-        {% for position in positions %}
-            <p>{{position.date}} {{position.position}}</p>
+        {% for match in matches %}
+            <p>{{match.date}} {{match.game}} <br> {{match.akcje}}</p>
         {% endfor %}
     
 

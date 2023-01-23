@@ -2,6 +2,8 @@ from flask import Flask, url_for, render_template, request, redirect, flash, ses
 from psycopg2 import sql
 import mysql.connector
 import yaml
+from datetime import date
+
 
 app = Flask(__name__)
 
@@ -136,7 +138,7 @@ def footballerHistory(footballer_id):
                 LEFT JOIN clubhistory AS ch ON f.id = ch.id_footballer
                 LEFT JOIN teams AS t ON t.id = ch.id_team
                 WHERE f.id = %s
-                GROUP BY dateFrom ORDER BY dateFrom DESC""", (footballer_id,))    
+                GROUP BY dateFrom ORDER BY dateFrom ASC""", (footballer_id,))    
     club_history_content = cur.fetchall()
 
     cur.execute("""
@@ -155,17 +157,29 @@ def footballerHistory(footballer_id):
                 """, (footballer_id,footballer_id))    
     position_history_content = cur.fetchall()
 
-    cur.execute("""
-                SELECT 
-                FROM footballer as f 
-                LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
-                LEFT JOIN position AS p ON p.id = ph.id_position
-                WHERE f.id = %s
-                GROUP BY ph.id_position, ph.id_footballer, date ORDER BY date DESC
-                """, (footballer_id,footballer_id))    
-    position_history_content = cur.fetchall()
 
-    return render_template("footballer_history.html", footballer_name=name[0], clubs=club_history_content, positions=position_history_content)
+    club_history_content2 = club_history_content + [{'dateFrom':date.today()}]
+    club_history_content3 = []
+    
+    for i in range(len(club_history_content2)-1):
+        cur.execute("""
+                SELECT ALL CONCAT(t1.name,' : ', t2.name) as game, date, COALESCE(
+                    (SELECT ALL GROUP_CONCAT(CONCAT(a.name, ': ', am.time,'min') SEPARATOR ', ') 
+                    FROM actionsinmatch as am 
+                    JOIN actions as a ON a.id = am.id_action
+                    WHERE am.id_match = g.id AND am.id_footballer = %s
+                    ), 'Brak akcji') as akcje
+                FROM games as g
+                LEFT JOIN teams as t1 ON t1.id = g.id_home
+                LEFT JOIN teams as t2 ON t2.id = g.id_away
+                WHERE (t1.name = %s OR t2.name = %s) AND date BETWEEN %s AND %s
+                """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
+        
+        club_history_content3 += cur.fetchall()
+    print(club_history_content3)
+
+    return render_template("footballer_history.html", footballer_name=name[0], clubs=club_history_content, positions=position_history_content, matches=club_history_content3)
+
 
 
 @app.route('/add_footballer', methods=["POST","GET"])
