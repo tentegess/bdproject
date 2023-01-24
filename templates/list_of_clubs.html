@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-muted headers-padding">Lista Piłkarzy</h1>
+    <hr class="divider mt-0">
+    <div class="headers-padding" style="padding-right: 15px;">
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+
+    </div>
+
+    <table class="table text-center">
+        <thead>
+            <tr>
+                {% for header in headings %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for value in row %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ value.nameLastname }}</td>
+                    <td>{{ value.position }}</td>
+                    <td>{{ value.team }}</td>
+                    {% set outer_loop = loop %}
+                        {% for i in range(actions|length) %}
+                            <td>{{ actions[i][outer_loop.index-1].counted  }}</td>
+                        {% endfor %}
+                    <td><a href='footballer_history/{{ value.id }}'>Arek</td>
+                    <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock  %}
+
+
+
+{% block script %}
+    <script>
+        document.getElementById('club_collapse').classList.add('show');
+        document.getElementById('club_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('club_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('club_lists').setAttribute('style', 'color:white !important');
+    </script>
+{% endblock %}

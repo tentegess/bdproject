@@ -240,6 +240,20 @@ def update_ft(footballer_id=None):
     
     return render_template("update_footballer.html",teams=teams_list, positions=positions_list, footballer=footballer)
 
+
+@app.route('/list_of_clubs')
+
+def list_of_clubs():
+
+    return render_template("list_of_clubs.html")
+
+
+@app.route('/add_club')
+
+def addclub():
+
+    return render_template("list_of_clubs.html")
+
 #invalid URL
 @app.errorhandler(404)
 

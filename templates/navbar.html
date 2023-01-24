@@ -48,6 +48,25 @@
                     <hr class="dropdown divider">
                 </li>
                 <li>
+                    <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link"
+                    data-bs-toggle="collapse" href="#club_collapse" role="button" aria-controls="club_collapse" 
+                    aria-expanded="false" id="club_collapse_btn">Drużyny
+                        <span class="bi bi-chevron-right right-icon ms-auto"></span>
+                    </a>
+                    <div class="collapse" id="club_collapse">
+                        <a  id="club_lists" class="nav-link text-muted" href="{{url_for('list_of_clubs')}}">
+                            Lista Drużyn
+                        </a>
+                        <a  class="nav-link text-muted" id="addclub" href="{{url_for('addclub')}}">
+                            Dodawanie Drużyny
+                        </a>
+                      
+                    </div>
+                </li>
+                <li class="my-3">
+                    <hr class="dropdown divider">
+                </li>
+                <li>
                     <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link "
                     data-bs-toggle="collapse" id="content_collapse_btn" href="#content_collapse" role="button" 
                     aria-expanded="false" aria-controls="content_collapse">Produkty
