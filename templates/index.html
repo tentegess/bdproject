@@ -1,7 +1,51 @@
 {% extends 'base.html' %}
 
 {% block content %}
-siema
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-xl-3 mb-3">
+                <div class="card text-white bg-success h-100" >
+                    <div class="card-header">
+                        <i class="bi bi-fan"></i></i>&nbspPiłkarze
+                        <a style='float:right;' class="text-white" href="{{url_for("addft")}}" >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Piłkarzy: </h5>
+                        <p class="card-text">
+                        </p>                       
+                    </div>
+                    <a href="{{url_for("list_of_ft")}}" id="orders_lists" class="nav-link text-white p-0">
+                        <div class="card-footer p-3">
+                            Przeglądaj Piłkarzy           
+                        </div>
+                    </a>
+                </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3 mb-3">
+            <div class="card text-white bg-custom-2 h-100" >
+                <div class="card-header">
+                    <i class="bi bi-fan"></i></i>&nbspKluby
+                    <a style='float:right;' class="text-white" href="{{url_for("addft")}}" >
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Klubów: </h5>
+                    <p class="card-text">
+                    </p>                       
+                </div>
+                <a href="{{url_for("list_of_ft")}}" id="orders_lists" class="nav-link text-white p-0">
+                    <div class="card-footer p-3">
+                        Przeglądaj Kluby           
+                    </div>
+                </a>
+            </div>
+    </div>
+        
+    </div>
 {% endblock  %}
 
 {% block script %}
