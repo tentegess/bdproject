@@ -31,6 +31,7 @@
                             <td>{{ actions[i][outer_loop.index-1].counted  }}</td>
                         {% endfor %}
                     <td><a href='footballer_history/{{ value.id }}'>Arek</td>
+                    <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a></td>
                 </tr>
             {% endfor %}
         </tbody>
