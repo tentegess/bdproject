@@ -24,11 +24,12 @@ app.config['SECRET_KEY']="Arek"
 @app.route('/')
 
 def index():
-    cur = mysql.cursor()
-    #cur.execute("INSERT INTO footballer(name, lastName) VALUES('Marcin','Najman')")
-    mysql.commit()
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""SELECT COUNT(name) AS footballers, (SELECT COUNT(name) FROM teams) AS teams,
+                (SELECT COUNT(name) FROM league) AS league FROM footballer""")
+    counts=cur.fetchone()
     cur.close()
-    return render_template("index.html")
+    return render_template("index.html", counts=counts)
 
 #footballers
 
@@ -44,8 +45,8 @@ def addft():
     
     if request.method == "POST":
         
-        name=request.form['name']
-        lastname=request.form['lastname']
+        name=request.form['name'].strip()
+        lastname=request.form['lastname'].strip()
         actual_team=request.form.get('actual_team')
         dateFrom_team=request.form.get('dateFrom_team')
         positions=request.form.getlist('positions[]')
@@ -216,8 +217,8 @@ def update_ft(footballer_id=None):
     if request.method == "POST":
         cur = mysql.cursor()
         try:
-            if request.form.get('name') and request.form.get('lastname'):
-                cur.execute("UPDATE footballer SET name=%s, lastName=%s WHERE id=%s",(request.form.get('name'),request.form.get('lastname'), footballer_id))
+            if request.form.get('name').strip() and request.form.get('lastname').strip():
+                cur.execute("UPDATE footballer SET name=%s, lastName=%s WHERE id=%s",(request.form.get('name').strip(),request.form.get('lastname').strip(), footballer_id))
                 if request.form.get('actual_team') and request.form.get('dateFrom_team'):
                    cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, request.form.get('actual_team'),request.form.get('dateFrom_team')))
                 elif request.form.get('noteam') and request.form.get('dateFrom_team'):
