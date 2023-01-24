@@ -13,19 +13,19 @@
             <div role="alert" class="{{ category }}">{{ message }}</div>
         {% endfor %}
       </div>
-
+      
     <div class="container" style="max-width:720px;">
         <form action="#", method="POST" autocomplete="off">
             <div class="row my-2">
               <h5 class="text-muted">Dane piłkarza</h5> 
                 <div class="col-6">
                   <label for="name">Imię</label>
-                  <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
+                  <input type="text" id="name" class="form-control" maxlength="30" name="name" placeholder="Imię"
                       value="{{footballer.name}}" Required>
                 </div>
                 <div class="col-6">
                   <label for="lastname">Nazwisko</label>
-                  <input type="text" id="lastname" class="form-control" name="lastname" placeholder="Nazwisko" 
+                  <input type="text" id="lastname" class="form-control" maxlength="30" name="lastname" placeholder="Nazwisko" 
                   value="{{footballer.lastName}}" Required>
                 </div>
               </div>
@@ -44,7 +44,12 @@
                     <input type="date" class="form-control" min="{{footballer.positionDate}}" id="dateFrom" name="date_position">
                   </div>
               </div>
-
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="noposition" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                  Brak pozycji
+                </label>
+              </div>
               <div class="row my-2">
                 <h5 class="text-muted mt-2">Drużyna</h5> 
                 <div class="col-6">
@@ -61,8 +66,16 @@
                   <input type="date" class="form-control req_team team_date" id="dateFrom" min="{{footballer.clubDate}}" name="dateFrom_team" onchange="checkTeam(); changeMaxTeam()">
                 </div>
               </div>
+              
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="noteam" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                  Brak Drużyny
+                </label>
+              </div>
 
               <div class="row my-2">
+                
                 <hr class="divider mb-1">
                 <div class="float-end">
                     <button type="submit" name="ftsub" class="btn btn-primary">Aktualizuj</button>

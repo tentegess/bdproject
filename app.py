@@ -220,10 +220,15 @@ def update_ft(footballer_id=None):
                 cur.execute("UPDATE footballer SET name=%s, lastName=%s WHERE id=%s",(request.form.get('name'),request.form.get('lastname'), footballer_id))
                 if request.form.get('actual_team') and request.form.get('dateFrom_team'):
                    cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, request.form.get('actual_team'),request.form.get('dateFrom_team')))
+                elif request.form.get('noteam') and request.form.get('dateFrom_team'):
+                    cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, None,request.form.get('dateFrom_team')))
                 if request.form.getlist('positions[]') and request.form.get('date_position'):
                    cur.execute("UPDATE positionhistory SET dateEnd=%s WHERE id_footballer=%s AND dateEnd IS NULL",(request.form.get('date_position'), footballer_id))
                    for i in range(0, len(request.form.getlist('positions[]'))):
                         cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,request.form.getlist('positions[]')[i],request.form.get('date_position'))) 
+                elif request.form.get('noposition') and request.form.get('date_position'):
+                    cur.execute("UPDATE positionhistory SET dateEnd=%s WHERE id_footballer=%s AND dateEnd IS NULL",(request.form.get('date_position'), footballer_id))
+                    cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,None,request.form.get('date_position'))) 
                 cur.close()
                 mysql.commit()
                 flash("Pomyślnie zaktualizowano piłkarza","alert alert-success")

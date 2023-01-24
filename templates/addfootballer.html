@@ -20,12 +20,12 @@
               <h5 class="text-muted">Dane piłkarza</h5> 
                 <div class="col-6">
                   <label for="name">Imię</label>
-                  <input type="text" id="name" class="form-control" name="name" placeholder="Imię"
+                  <input type="text" id="name" class="form-control" name="name" maxlength="30" placeholder="Imię"
                       value="{{request.form.name}}" Required>
                 </div>
                 <div class="col-6">
                   <label for="lastname">Nazwisko</label>
-                  <input type="text" id="lastname" class="form-control" name="lastname" placeholder="Nazwisko" 
+                  <input type="text" id="lastname" class="form-control" name="lastname" maxlength="30" placeholder="Nazwisko" 
                   value="{{request.form.lastname}}" Required>
                 </div>
               </div>
