@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="text-muted headers-padding">Lista Piłkarzy</h1>
+<h1 class="text-muted headers-padding">Lista Drużyn</h1>
     <hr class="divider mt-0">
     <div class="headers-padding" style="padding-right: 15px;">
 
@@ -23,9 +23,9 @@
             {% for value in row %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ value.nameLastname }}</td>
-                    <td>{{ value.position }}</td>
                     <td>{{ value.team }}</td>
+                    <td>{{ value.league }}</td>
+                    <td>{{ value.wins }}</td>
                     {% set outer_loop = loop %}
                         {% for i in range(actions|length) %}
                             <td>{{ actions[i][outer_loop.index-1].counted  }}</td>
