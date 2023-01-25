@@ -250,7 +250,24 @@ def update_ft(footballer_id=None):
 @app.route('/list_of_clubs')
 
 def list_of_clubs():
-
+    headings = ['Lp.', "Drużyna", "Liga", "Pozycja w lidze"]
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT t.name as team, l.name as league, COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins
+                FROM teams as t
+                LEFT JOIN league as l ON l.id = t.id_league
+                LEFT JOIN (SELECT g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                    FROM games AS g
+                    LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                    LEFT JOIN actions as a ON a.id = am.id_action
+                    LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND f.id = ch.id_footballer
+                    WHERE (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom 
+                    GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
+                GROUP BY t.id; 
+                """)
+    table_content = cur.fetchall()
+    print(table_content)
     return render_template("list_of_clubs.html")
 
 
