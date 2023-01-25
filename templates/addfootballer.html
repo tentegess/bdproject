@@ -10,7 +10,9 @@
 
       <div class="headers-padding my-0 py-0" style="padding-right: 15px;">
         {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div role="alert" class="{{ category }}">{{ message }}</div>
+            <div role="alert" class="{{ category }}">{{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endfor %}
       </div>
 

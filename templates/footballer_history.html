@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="text-muted headers-padding">{{ footballer_name.last_name }}</h1>
+<h1 class="text-muted headers-padding">{{ footballer.last_name }}</h1>
     <hr class="divider mt-0">
     <div class="headers-padding" style="padding-right: 15px;">
 
@@ -10,23 +10,37 @@
         {% endfor %}
 
     </div>
-
-    <h4 class="text-muted headers-padding"> Historia klubów </h1>
-    {% for club in clubs %}
-        <p>{{club.dateFrom}} {{ club.club_name }}</p>
-    {% endfor %}
-
-    <h4 class="text-muted headers-padding"> Historia pozycji </h1>
-    {% for position in positions %}
-        <p>{{position.date}} {{position.position}}</p>
-    {% endfor %}
-
-    <h4 class="text-muted headers-padding"> Historia meczy </h1>
-        {% for match in matches %}
-            <p>{{match.date}} {{match.game}} <br> {{match.akcje|safe}}</p>
-        {% endfor %}
-    
-
+    <div class="container-fluid">
+    <div class="row ">
+        <div class="col-auto py-0 my-0">
+            <i class="bi bi-file-person" style=" font-size: 100px;"></i>
+        </div>
+        <div class="col-auto">
+        <p>{{footballer.team}}</p>
+        <p>{{footballer.position}}</p>
+        </div>
+    </div>
+    <div class="row ">
+        <div class="col-12 col-md-4 border-end historyField border-top ">
+            <h4 class="text-muted headers-padding"> Historia klubów </h1>
+            {% for club in clubs %}
+                <p>{{club.dateFrom}} {{ club.club_name }}</p>
+            {% endfor %}
+        </div>
+        <div class="col-12 col-md-4 border-end historyField border-top">
+            <h4 class="text-muted headers-padding"> Historia pozycji </h1>
+            {% for position in positions %}
+                <p>{{position.date}} {{position.position}}</p>
+            {% endfor %}
+        </div>
+        <div class="col-12 col-md-4 border-top">
+            <h4 class="text-muted headers-padding "> Historia meczy </h1>
+                {% for match in matches %}
+                    <p>{{match.date}} {{match.game}} <br> {{match.akcje|safe}}</p>
+                {% endfor %}
+        </div>
+    </div>
+    </div>
 {% endblock  %}
 
 
@@ -36,6 +50,5 @@
         document.getElementById('ft_collapse').classList.add('show');
         document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
         document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
-        document.getElementById('ft_lists').setAttribute('style', 'color:white !important');
     </script>
 {% endblock %}

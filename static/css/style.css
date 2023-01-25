@@ -150,6 +150,11 @@ ul.navbar-nav a:hover { color: #fff !important; }
   pointer-events:none;
 }
 
+@media (max-width:576px){
+  .historyField{
+    border-right: none;
+  }
+}
 
 .errorLabel{
   color:red;

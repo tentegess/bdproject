@@ -66,22 +66,22 @@ def addft():
                             for i in range(0, len(request.form.getlist('historydateFrom_team[]'))):
                                 cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,history_teams[i], teams_dates[i]))
                         else:
-                            flash("liczba klubów jest różna od liczby dat","alert alert-danger")
+                            flash("liczba klubów jest różna od liczby dat","alert alert-danger alert-dismissible")
                             return render_template("addfootballer.html", teams=teams_list, positions=positions_list) 
                 if positions and positions_date:
                     for i in range(0, len(request.form.getlist('positions[]'))):
                         cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,positions[i],positions_date))
                 mysql.commit()
                 cur.close()
-                flash("Pomyślnie dodano piłkarza","alert alert-success")
+                flash("Pomyślnie dodano piłkarza","alert alert-success alert-dismissible")
                 return redirect(url_for("list_of_ft"))
-            except Exception:
+            except Exception as e:
                 mysql.rollback()
                 cur.close()
-                flash("Wystąpił błąd w bazie danych","alert alert-danger")
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
                 return render_template("addfootballer.html", teams=teams_list, positions=positions_list)  
         else:
-            flash("Należy uzupełnić dane","alert alert-danger")
+            flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
             return render_template("addfootballer.html", teams=teams_list, positions=positions_list)   
     else:    
         return render_template("addfootballer.html", teams=teams_list, positions=positions_list)
@@ -134,27 +134,43 @@ def list_of_ft():
 
 def footballerHistory(footballer_id):
     cur = mysql.cursor(dictionary=True)
-    cur.execute("SELECT CONCAT(f.name, ' ', f.lastName) as last_name FROM footballer as f WHERE f.id = %s", (footballer_id,))    
-    name = cur.fetchall()
+    cur.execute("""
+                SELECT CONCAT(f.name, ' ', f.lastName) AS last_name, f.id,
+                CONCAT('Pozycja: ', COALESCE(
+                    (SELECT GROUP_CONCAT(p.name SEPARATOR ', ') 
+                    FROM positionhistory as ph 
+                    JOIN position as p ON p.id = ph.id_position 
+                    WHERE ph.id_footballer = f.id
+                    AND dateEnd is NULL
+                    ), 'Brak pozycji')) as position,
+                CONCAT('Drużyna: ',COALESCE(t.name, 'Brak druzyny')) as team 
+                FROM footballer as f 
+                LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
+                LEFT JOIN teams as t ON ch.id_team = t.id
+                WHERE (dateFrom = (SELECT MAX(dateFROM) FROM clubhistory WHERE id_footballer = f.id ) OR dateFROM IS NULL)
+                AND f.id = %s""", (footballer_id,))
+        
+    name = cur.fetchone()
+    print(name)
     if not name:
         cur.close()
-        flash("Wybrany piłkarz nie istnieje","alert alert-danger")
+        flash("Wybrany piłkarz nie istnieje","alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_ft"))
 
     cur.execute("""
-                SELECT t.name AS club_name, dateFrom
+                SELECT COALESCE(t.name,'Brak drużyny') AS club_name, COALESCE(dateFrom,'') as dateFrom
                 FROM footballer as f 
                 LEFT JOIN clubhistory AS ch ON f.id = ch.id_footballer
                 LEFT JOIN teams AS t ON t.id = ch.id_team
                 WHERE f.id = %s
-                GROUP BY dateFrom ORDER BY dateFrom ASC""", (footballer_id,))    
+                GROUP BY dateFrom ORDER BY dateFrom DESC""", (footballer_id,))    
     club_history_content = cur.fetchall()
 
 
 
 
     cur.execute("""
-                SELECT CONCAT('Dodanie pozycji: ',GROUP_CONCAT(p.name SEPARATOR ', ')) as position, dateFrom as date
+                SELECT COALESCE(CONCAT('Dodanie pozycji: ',GROUP_CONCAT(p.name SEPARATOR ', ')),'Brak pozycji') as position,  COALESCE(dateFrom,'') as date
                 FROM footballer as f 
                 LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
                 LEFT JOIN position AS p ON p.id = ph.id_position
@@ -186,10 +202,11 @@ def footballerHistory(footballer_id):
                 LEFT JOIN teams as t1 ON t1.id = g.id_home
                 LEFT JOIN teams as t2 ON t2.id = g.id_away
                 WHERE (t1.name = %s OR t2.name = %s) AND date BETWEEN %s AND %s
+                ORDER BY date DESC
                 """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
         club_history_content3 += cur.fetchall()
 
-    return render_template("footballer_history.html", footballer_name=name[0], clubs=club_history_content, positions=position_history_content, matches=club_history_content3)
+    return render_template("footballer_history.html", footballer=name, clubs=club_history_content, positions=position_history_content, matches=club_history_content3)
 
 
 
@@ -206,7 +223,7 @@ def update_ft(footballer_id=None):
     print(footballer)
     if not footballer['id']:
         cur.close()
-        flash("Wybrany piłkarz nie istnieje","alert alert-danger")
+        flash("Wybrany piłkarz nie istnieje","alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_ft"))
     if footballer['clubDate']:
         footballer['clubDate']=footballer['clubDate']+timedelta(days=1)
@@ -236,20 +253,37 @@ def update_ft(footballer_id=None):
                     cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,None,request.form.get('date_position'))) 
                 cur.close()
                 mysql.commit()
-                flash("Pomyślnie zaktualizowano piłkarza","alert alert-success")
+                flash("Pomyślnie zaktualizowano piłkarza","alert alert-success alert-dismissible")
                 return redirect(url_for("list_of_ft"))
             else:
                 cur.close()
-                flash("Należy uzupełnić dane","alert alert-danger")
+                flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
                 return redirect(url_for("update_ft",footballer_id=footballer_id))
-        except Exception:
+        except Exception as e:
                 mysql.rollback()
                 cur.close()
-                flash("Wystąpił błąd w bazie danych","alert alert-danger")
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
                 return redirect(url_for("list_of_ft"))
     
     return render_template("update_footballer.html",teams=teams_list, positions=positions_list, footballer=footballer)
 
+
+@app.route('/remove_ft/<footballer_id>')
+
+def rmft(footballer_id):
+    cur = mysql.cursor()
+    try:
+        cur.execute("DELETE FROM footballer WHERE id=%s",(footballer_id,))
+        mysql.commit()
+        cur.close()
+        flash("Pomyślnie usunięto piłkarza","alert alert-success alert-dismissible")
+        return redirect(url_for("list_of_ft"))
+    except Exception as e:
+        mysql.rollback()
+        cur.close()
+        flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_ft"))
+    
 
 @app.route('/list_of_clubs')
 
