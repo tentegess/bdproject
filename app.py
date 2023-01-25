@@ -150,19 +150,23 @@ def footballerHistory(footballer_id):
                 GROUP BY dateFrom ORDER BY dateFrom ASC""", (footballer_id,))    
     club_history_content = cur.fetchall()
 
+
+
+
     cur.execute("""
-                SELECT CONCAT('Dodanie pozycji: ', p.name) as position, dateFrom as date
+                SELECT CONCAT('Dodanie pozycji: ',GROUP_CONCAT(p.name SEPARATOR ', ')) as position, dateFrom as date
                 FROM footballer as f 
                 LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
                 LEFT JOIN position AS p ON p.id = ph.id_position
-                WHERE f.id = %s
+                WHERE f.id = %s 
+                GROUP BY date
                 UNION ALL
-                SELECT CONCAT('Usunięcie pozycji: ', p.name) as position, dateEnd as date
+                SELECT CONCAT('Usunięcie pozycji: ',GROUP_CONCAT(p.name SEPARATOR ', ')) as position, dateEnd as date
                 FROM footballer as f 
                 LEFT JOIN positionhistory AS ph ON f.id = ph.id_footballer
                 LEFT JOIN position AS p ON p.id = ph.id_position
                 WHERE f.id = %s AND dateEnd is not NULL
-                GROUP BY ph.id_position, ph.id_footballer, date ORDER BY date DESC
+                GROUP BY date ORDER BY date DESC
                 """, (footballer_id,footballer_id))    
     position_history_content = cur.fetchall()
 
@@ -173,7 +177,7 @@ def footballerHistory(footballer_id):
     for i in range(len(club_history_content2)-1):
         cur.execute("""
                 SELECT ALL CONCAT(t1.name,' : ', t2.name) as game, date, COALESCE(
-                    (SELECT ALL GROUP_CONCAT(CONCAT(a.name, ': ', am.time,'min') ORDER BY am.time SEPARATOR ', ') 
+                    (SELECT ALL GROUP_CONCAT(CONCAT(a.name, ': ', am.time,'min') ORDER BY am.time SEPARATOR '</br>') 
                     FROM actionsinmatch as am 
                     JOIN actions as a ON a.id = am.id_action
                     WHERE am.id_match = g.id AND am.id_footballer = %s
@@ -268,7 +272,7 @@ def list_of_clubs():
                 """)
     table_content = cur.fetchall()
     print(table_content)
-    return render_template("list_of_clubs.html")
+    return render_template("list_of_clubs.html", headings=headings, row=table_content)
 
 
 @app.route('/add_club')
