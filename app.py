@@ -284,6 +284,7 @@ def rmft(footballer_id):
         flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_ft"))
     
+#clubs
 
 @app.route('/list_of_clubs')
 
@@ -291,7 +292,7 @@ def list_of_clubs():
     headings = ['Lp.', "Drużyna", "Liga", "Pozycja w lidze"]
     cur = mysql.cursor(dictionary=True)
     cur.execute("""
-                SELECT t.name as team, l.name as league, COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins
+                SELECT t.id as t_id, t.name as team, l.name as league, COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins
                 FROM teams as t
                 LEFT JOIN league as l ON l.id = t.id_league
                 LEFT JOIN (SELECT g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
@@ -309,11 +310,56 @@ def list_of_clubs():
     return render_template("list_of_clubs.html", headings=headings, row=table_content)
 
 
-@app.route('/add_club')
+@app.route('/add_club', methods=["POST","GET"])
 
 def addclub():
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""SELECT id, name FROM league""")
+    leagues=cur.fetchall()
+    cur.close()
+    if request.method == "POST":
+        name=request.form.get('name').strip()
+        league=request.form.get('league').strip()
+        if name and league:
+            cur = mysql.cursor()
+            cur.execute("""SELECT COUNT(name) as counter FROM teams WHERE name=%s""",(name,))
+            counter=cur.fetchone()
+            print(counter)
+            if counter[0]>0:
+                cur.close()
+                flash("Podana drużyna istnieje w bazie","alert alert-danger alert-dismissible")
+                return render_template("addclub.html", leagues=leagues)
+            try:
+                cur.execute("INSERT INTO teams(name, id_league) VALUES(%s,%s)",(name,league))
+                mysql.commit()
+                cur.close()
+                flash("Pomyślnie dodano drużynę","alert alert-success alert-dismissible")
+                return redirect(url_for("list_of_clubs"))
+            except Exception as e:
+                mysql.rollback()
+                cur.close()
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+                return render_template("addclub.html", leagues=leagues)
+        else:
+            flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+            return redirect(url_for("addclub"))
+    return render_template("addclub.html", leagues=leagues)
 
-    return render_template("list_of_clubs.html")
+@app.route('/remove_team/<club_id>')
+
+def rmteam(club_id):
+    cur = mysql.cursor()
+    try:
+        cur.execute("DELETE FROM teams WHERE id=%s",(club_id,))
+        mysql.commit()
+        cur.close()
+        flash("Pomyślnie usunięto klub","alert alert-success alert-dismissible")
+        return redirect(url_for("list_of_clubs"))
+    except Exception as e:
+        mysql.rollback()
+        cur.close()
+        flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_clubs"))
 
 #invalid URL
 @app.errorhandler(404)

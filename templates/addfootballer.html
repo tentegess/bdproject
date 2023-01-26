@@ -35,7 +35,7 @@
               <div class="row my-2">
                 <h5 class="text-muted mt-2">Pozycje</h5> 
                     <div class="col-6">
-                        <select class="select2 form-select-lg" multiple id="positions" name="positions[]" style="width: 100%;">
+                        <select class="select2 form-select-lg " multiple id="positions" name="positions[]" style="width: 100%;">
                               {% for position in positions%}
                                 <option value="{{position.id}}">{{position.name}}</option>
                               {% endfor %}
