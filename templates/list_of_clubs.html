@@ -25,11 +25,11 @@
                     <td>{{ loop.index }}</td>
                     <td>{{ value.team }}</td>
                     <td>{{ value.league }}</td>
+                    <td>{{ value.games_played }}</td>
                     <td>{{ value.wins }}</td>
-                    {% set outer_loop = loop %}
-                        {% for i in range(actions|length) %}
-                            <td>{{ actions[i][outer_loop.index-1].counted  }}</td>
-                        {% endfor %}
+                    <td>{{ value.draws }}</td>
+                    <td>{{ value.loses }}</td>
+                    <td>{{ value.league_points }}</td>
                     <td><a href='footballer_history/{{ value.id }}'>Arek</td>
                     <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
                         <a class="btn btn-danger btn-sm " href="remove_team/{{ value.t_id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>
