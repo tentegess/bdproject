@@ -43,7 +43,7 @@
                   </div>
 
                   <div class="col-6">
-                    <input type="date" class="form-control" id="dateFrom" name="date_position">
+                    <input type="date" class="form-control" id="dateFrom_pos" name="date_position">
                   </div>
               </div>
 
@@ -52,7 +52,7 @@
                 <div class="col-6">
                   <label for="team">Drużyna</label>
                     <select class="form-select req_team" name="actual_team" onchange="checkTeam()">
-                      <option value="" disabled selected hidden>Wybierz drużynę</option>
+                      <option value='0' selected>Brak drużyny</option>
                       {% for team in teams%}
                         <option value="{{team.id}}">{{team.name}}</option>
                       {% endfor %}
@@ -136,7 +136,7 @@
           html+="<div class='row my-2'>"
           html+="<div class='col-6'>"
           html+="<select class='form-select req_team' name='history_team[]' onchange='checkTeam()' Required>"
-          html+="<option value='' disabled selected hidden>Wybierz drużynę</option>"
+          html+="<option value='0' selected>Brak Drużyny</option>"
           for(var i=0; i<team_ids.length; i++){
             html+="<option value='"+team_ids[i]+"'>"+team_names[i]+"</option>"
           }
@@ -175,7 +175,7 @@
         }
 
         $('#positions').select2({
-          placeholder: 'Wybierz Pozycje',
+          placeholder: 'Brak Pozycji',
       });
 
     </script
