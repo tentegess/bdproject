@@ -202,7 +202,7 @@ def footballerHistory(footballer_id):
                 LEFT JOIN teams as t1 ON t1.id = g.id_home
                 LEFT JOIN teams as t2 ON t2.id = g.id_away
                 WHERE (t1.name = %s OR t2.name = %s) AND date BETWEEN %s AND %s
-                ORDER BY date DESC
+                ORDER BY g.date DESC
                 """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
         club_history_content3 += cur.fetchall()
 
@@ -289,19 +289,28 @@ def rmft(footballer_id):
 @app.route('/list_of_clubs')
 
 def list_of_clubs():
-    headings = ['Lp.', "Drużyna", "Liga", "Pozycja w lidze"]
+    headings = ['Lp.', "Drużyna", "Liga", "Rozegrane mecze", "Wygane", "Remisy", "Przegrane", "Punkty ligowe"]
     cur = mysql.cursor(dictionary=True)
+    year = 2023;
     cur.execute("""
-                SELECT t.id as t_id, t.name as team, l.name as league, COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins
+                SELECT t.id as t_id, t.name as team, l.name as league, 
+                COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins,
+                COUNT(CASE WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 END) as draws,
+                COUNT(CASE WHEN home_goals < away_goals AND t.id=g.id_home THEN 1 WHEN away_goals < home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as loses,
+                COUNT((SELECT SUM(CASE WHEN g2.id_away=t.id OR g2.id_home=t.id THEN 1 ELSE NULL END) FROM games AS g2
+                WHERE (g2.id_away=t.id OR g2.id_home=t.id) AND g2.id IS NOT NULL)) AS games_played,
+                SUM(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 3 WHEN away_goals > home_goals AND t.id=g.id_away THEN 3  
+                WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 ELSE 0 END) as league_points
                 FROM teams as t
                 LEFT JOIN league as l ON l.id = t.id_league
-                LEFT JOIN (SELECT g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
                     FROM games AS g
                     LEFT JOIN actionsinmatch as am ON g.id = am.id_match
                     LEFT JOIN actions as a ON a.id = am.id_action
                     LEFT JOIN footballer as f ON am.id_footballer = f.id 
-                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND f.id = ch.id_footballer
-                    WHERE (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom 
+                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                    f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                    WHERE g.date = 
                     GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
                 GROUP BY t.id; 
                 """)
