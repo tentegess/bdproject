@@ -289,11 +289,11 @@ def rmft(footballer_id):
 @app.route('/list_of_clubs')
 
 def list_of_clubs():
-    headings = ['Lp.', "Drużyna", "Liga", "Rozegrane mecze", "Wygane", "Remisy", "Przegrane", "Punkty ligowe"]
+    headings = ['Lp.', "Drużyna", "Liga", "Rozegrane mecze", "Wygane", "Remisy", "Przegrane", "Punkty ligowe", "Historia", "Edycja"]
     cur = mysql.cursor(dictionary=True)
     year = 2023;
     cur.execute("""
-                SELECT t.id as t_id, t.name as team, l.name as league, 
+                SELECT t.id as id, t.name as team, l.name as league, 
                 COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins,
                 COUNT(CASE WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 END) as draws,
                 COUNT(CASE WHEN home_goals < away_goals AND t.id=g.id_home THEN 1 WHEN away_goals < home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as loses,
@@ -310,10 +310,10 @@ def list_of_clubs():
                     LEFT JOIN footballer as f ON am.id_footballer = f.id 
                     LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
                     f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
-                    WHERE g.date = 
+                    WHERE YEAR(g.date) = %s
                     GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
                 GROUP BY t.id; 
-                """)
+                """,(year,))
     table_content = cur.fetchall()
     print(table_content)
     return render_template("list_of_clubs.html", headings=headings, row=table_content)
@@ -369,6 +369,23 @@ def rmteam(club_id):
         cur.close()
         flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_clubs"))
+
+
+@app.route('/club_history/<club_id>')
+
+def club_history(club_id):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""SELECT name FROM teams AS t WHERE t.id = %s""", (club_id,))
+        
+    name = cur.fetchone()
+    print(name)
+    if not name:
+        cur.close()
+        flash("Wybrana drużyna nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_clubs"))
+
+    return render_template("club_history.html", footballer=name)
+
 
 #invalid URL
 @app.errorhandler(404)
