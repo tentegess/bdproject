@@ -70,8 +70,8 @@
               </div>
               
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="noteam" id="flexCheckDefault">
-                <label class="form-check-label" for="flexCheckDefault">
+                <input class="form-check-input" type="checkbox" name="noteam" id="flexCheckDefault2">
+                <label class="form-check-label" for="flexCheckDefault2">
                   Brak Drużyny
                 </label>
               </div>
@@ -92,7 +92,17 @@
         document.getElementById('ft_collapse').classList.add('show');
         document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
         document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
+        $( document ).ready(function() {
+          var curr_pos=[
+              {% for position in current_positions%}
+              {{position.id_position}}
+              {{ ", " if not loop.last else "" }}
+              {% endfor %}
+          ]
 
+          $('#positions').val(curr_pos);
+          $('#positions').trigger('change');
+      });
 
         $('#positions').select2({
           placeholder: 'Wybierz Pozycje',

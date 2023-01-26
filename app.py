@@ -220,11 +220,15 @@ def update_ft(footballer_id=None):
                 WHERE f.id=%s AND ph.dateEnd IS NULL
                 """,(footballer_id,))
     footballer=cur.fetchone()
-    print(footballer)
     if not footballer['id']:
         cur.close()
         flash("Wybrany piłkarz nie istnieje","alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_ft"))
+    cur.execute("""SELECT id_position FROM positionhistory
+                WHERE id_footballer=%s AND dateEND is NULL
+                """,(footballer_id,))
+    current_positions=cur.fetchall()
+
     if footballer['clubDate']:
         footballer['clubDate']=footballer['clubDate']+timedelta(days=1)
     if footballer['positionDate']:
@@ -240,17 +244,20 @@ def update_ft(footballer_id=None):
         try:
             if request.form.get('name').strip() and request.form.get('lastname').strip():
                 cur.execute("UPDATE footballer SET name=%s, lastName=%s WHERE id=%s",(request.form.get('name').strip(),request.form.get('lastname').strip(), footballer_id))
-                if request.form.get('actual_team') and request.form.get('dateFrom_team'):
-                   cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, request.form.get('actual_team'),request.form.get('dateFrom_team')))
-                elif request.form.get('noteam') and request.form.get('dateFrom_team'):
+                
+                if request.form.get('noteam') and request.form.get('dateFrom_team'):
                     cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, None,request.form.get('dateFrom_team')))
-                if request.form.getlist('positions[]') and request.form.get('date_position'):
+                elif request.form.get('actual_team') and request.form.get('dateFrom_team'):
+                   cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(footballer_id, request.form.get('actual_team'),request.form.get('dateFrom_team')))
+                
+                if request.form.get('noposition') and request.form.get('date_position'):
+                    cur.execute("UPDATE positionhistory SET dateEnd=%s WHERE id_footballer=%s AND dateEnd IS NULL",(request.form.get('date_position'), footballer_id))
+                    cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,None,request.form.get('date_position')))     
+                elif request.form.getlist('positions[]') and request.form.get('date_position'):
                    cur.execute("UPDATE positionhistory SET dateEnd=%s WHERE id_footballer=%s AND dateEnd IS NULL",(request.form.get('date_position'), footballer_id))
                    for i in range(0, len(request.form.getlist('positions[]'))):
                         cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,request.form.getlist('positions[]')[i],request.form.get('date_position'))) 
-                elif request.form.get('noposition') and request.form.get('date_position'):
-                    cur.execute("UPDATE positionhistory SET dateEnd=%s WHERE id_footballer=%s AND dateEnd IS NULL",(request.form.get('date_position'), footballer_id))
-                    cur.execute("INSERT INTO positionhistory(id_footballer, id_position, dateFrom) VALUES(%s,%s,%s)",(footballer_id,None,request.form.get('date_position'))) 
+                
                 cur.close()
                 mysql.commit()
                 flash("Pomyślnie zaktualizowano piłkarza","alert alert-success alert-dismissible")
@@ -265,7 +272,7 @@ def update_ft(footballer_id=None):
                 flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
                 return redirect(url_for("list_of_ft"))
     
-    return render_template("update_footballer.html",teams=teams_list, positions=positions_list, footballer=footballer)
+    return render_template("update_footballer.html",teams=teams_list, positions=positions_list, footballer=footballer, current_positions=current_positions)
 
 
 @app.route('/remove_ft/<footballer_id>')
