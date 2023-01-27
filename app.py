@@ -58,12 +58,16 @@ def addft():
                 cur.execute("INSERT INTO footballer(name, lastName) VALUES(%s,%s)",(name,lastname))
                 last_ft_id=cur.lastrowid
                 if actual_team and dateFrom_team:
+                    if actual_team=='0':
+                        actual_team=None 
                     cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,actual_team,dateFrom_team))
                     if request.form.getlist('historydateFrom_team[]') and request.form.getlist('history_team[]'):
                         if len(request.form.getlist('historydateFrom_team[]')) == len(request.form.getlist('history_team[]')):
                             history_teams=request.form.getlist('history_team[]')
                             teams_dates=request.form.getlist('historydateFrom_team[]')
                             for i in range(0, len(request.form.getlist('historydateFrom_team[]'))):
+                                if history_teams[i]=='0':
+                                   history_teams[i]=None 
                                 cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,history_teams[i], teams_dates[i]))
                         else:
                             flash("liczba klubów jest różna od liczby dat","alert alert-danger alert-dismissible")
@@ -115,7 +119,7 @@ def list_of_ft():
                     WHERE ph.id_footballer = f.id
                     AND dateEnd is NULL
                     ), 'Brak pozycji') as position,
-                COALESCE(t.name, 'Brak druzyny') as team 
+                COALESCE(t.name, 'Brak drużyny') as team 
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
                 LEFT JOIN teams as t ON ch.id_team = t.id
@@ -143,7 +147,7 @@ def footballerHistory(footballer_id):
                     WHERE ph.id_footballer = f.id
                     AND dateEnd is NULL
                     ), 'Brak pozycji')) as position,
-                CONCAT('Drużyna: ',COALESCE(t.name, 'Brak druzyny')) as team 
+                CONCAT('Drużyna: ',COALESCE(t.name, 'Brak drużyny')) as team 
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
                 LEFT JOIN teams as t ON ch.id_team = t.id
