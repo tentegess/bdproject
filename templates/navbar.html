@@ -67,6 +67,25 @@
                     <hr class="dropdown divider">
                 </li>
                 <li>
+                    <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link"
+                    data-bs-toggle="collapse" href="#league_collapse" role="button" aria-controls="league_collapse" 
+                    aria-expanded="false" id="league_collapse_btn">Ligi
+                        <span class="bi bi-chevron-right right-icon ms-auto"></span>
+                    </a>
+                    <div class="collapse" id="league_collapse">
+                        <a  id="league_lists" class="nav-link text-muted" href="{{url_for('list_of_leagues')}}">
+                            Lista lig
+                        </a>
+                        <a  class="nav-link text-muted" id="addleague" href="{{url_for('addleague')}}">
+                            Dodawanie ligi
+                        </a>
+                      
+                    </div>
+                </li>
+                <li class="my-3">
+                    <hr class="dropdown divider">
+                </li>
+                <li>
                     <a class="text-muted small fw-bold text-uppercase text-decoration-none sidebar-link "
                     data-bs-toggle="collapse" id="content_collapse_btn" href="#content_collapse" role="button" 
                     aria-expanded="false" aria-controls="content_collapse">Produkty

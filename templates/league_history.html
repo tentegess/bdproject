@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-muted headers-padding">{{ leagues.name }}</h1>
+    <hr class="divider mt-0">
+    <div class="headers-padding" style="padding-right: 15px;">
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+
+    </div>
+    <div class="container-fluid">
+    <div class="row ">
+        <div class="col-auto py-0 my-0">
+            <i class="bi bi-file-person" style=" font-size: 100px;"></i>
+        </div>
+        <div class="col-auto">
+        
+        </div>
+    </div>
+    <div class="row ">
+        <div class="col-12 col-md-4 border-top">
+            <h4 class="text-muted headers-padding "> Historia meczy </h1>
+                {% for game in games_history %}
+                    <p>{{game.date}} {{game.games}}</p>
+                {% endfor %}
+        </div>
+    </div>
+    </div>
+{% endblock  %}
+
+
+
+{% block script %}
+    <script>
+        document.getElementById('league_collapse').classList.add('show');
+        document.getElementById('league_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('league_collapse_btn').setAttribute('style', 'color:white !important');
+    </script>
+{% endblock %}

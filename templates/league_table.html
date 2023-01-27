@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="text-muted headers-padding">Lista Drużyn</h1>
+<h1 class="text-muted headers-padding">{{leagues.name}}</h1>
     <hr class="divider mt-0">
     <div class="headers-padding" style="padding-right: 15px;">
 
@@ -12,7 +12,7 @@
         {% endfor %}
         <div class="col-12 col-md-6 col-lg-4">
             <div class="input-group">
-                <input type="text" class="form-control" id="searchBox" placeholder="Wyszukaj klubu">
+                <input type="text" class="form-control" id="searchBox" placeholder="Wyszukaj ligi">
                 <button type="button" class="btn bg-transparent clrBtn" style="margin-left: -40px; z-index: 100;">
                     <i class="bi bi-x"></i>
                 </button>
@@ -34,15 +34,11 @@
                 <tr class="tabrow">
                     <td>{{ loop.index }}</td>
                     <td>{{ value.team }}</td>
-                    <td>{{ value.league }}</td>
                     <td>{{ value.games_played }}</td>
                     <td>{{ value.wins }}</td>
                     <td>{{ value.draws }}</td>
                     <td>{{ value.loses }}</td>
                     <td>{{ value.league_points }}</td>
-                    <td><a class="btn btn-dark btn-sm " style='width:32px;' href='club_history/{{ value.id }}'  role="button"><i class="bi bi-clock-history"></i></td>
-                    <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
-                        <a class="btn btn-danger btn-sm " href="remove_team/{{ value.t_id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -64,10 +60,10 @@
 
 {% block script %}
     <script>
-        document.getElementById('club_collapse').classList.add('show');
-        document.getElementById('club_collapse_btn').setAttribute('aria-expanded', 'true');
-        document.getElementById('club_collapse_btn').setAttribute('style', 'color:white !important');
-        document.getElementById('club_lists').setAttribute('style', 'color:white !important');
+        document.getElementById('league_collapse').classList.add('show');
+        document.getElementById('league_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('league_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('league_lists').setAttribute('style', 'color:white !important');
 
         $(document).ready(function(){
             $("#searchBox").on("keyup", function() {

@@ -487,8 +487,123 @@ def club_history(club_id):
             WHERE t.id = %s;""",(club_id,))
     team_stats = cur.fetchone()
 
-    return render_template("club_history.html", footballer=name, actual_players=actual_players, players_history=players_history, games_history=games_history, team_stats=team_stats, number_of_players=len(actual_players))
+    return render_template("club_history.html", team=name, actual_players=actual_players, players_history=players_history, games_history=games_history, team_stats=team_stats, number_of_players=len(actual_players))
 
+
+@app.route('/list_of_leagues', methods=["POST","GET"])
+
+def list_of_leagues():
+    headings = ['Lp.', "Liga", "Liczba drużyn", "Tabela", "Historia", "Edycja"]
+    cur = mysql.cursor(dictionary=True)
+
+    cur.execute("""
+                SELECT l.name AS name, COUNT((SELECT SUM(CASE WHEN l.id = l2.id THEN 1 ELSE NULL END) FROM league as l2 INNER JOIN teams as t ON l2.id = t.id_league
+                WHERE (l2.id = l.id) AND l2.id IS NOT NULL)) AS number_of_teams,
+                l.id AS id
+                FROM league as l
+                LEFT JOIN teams as t ON l.id = t.id_league
+                GROUP BY l.id;""")
+    leagues = cur.fetchall()
+
+    return render_template("list_of_leagues.html", headings=headings, row=leagues)
+
+
+@app.route('/add_league', methods=["POST","GET"])
+
+def addleague():
+    cur = mysql.cursor(dictionary=True)
+    
+    return render_template("addleague.html")
+
+
+@app.route('/league_history/<league_id>')
+
+def league_history(league_id):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT l.name AS name, COUNT(*) AS number_of_teams, l.id AS id
+                FROM league as l
+                LEFT JOIN teams as t ON l.id = t.id_league
+                WHERE l.id = %s GROUP BY l.id;""",(league_id,))
+    league = cur.fetchone()
+
+    if not league:
+        cur.close()
+        flash("Wybrana liga nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+
+    cur.execute("""
+                SELECT CASE WHEN g.id_home = t1.id THEN CONCAT(t2.name, ' - ', t1.name) WHEN g.id_away = t2.id THEN CONCAT(t1.name, ' - ', t2.name) END AS games, g.date as date, 
+                CASE WHEN g2.id_home = t1.id THEN CONCAT(home_goals,':',away_goals) ELSE CONCAT(away_goals,':',home_goals) END as test
+                FROM games AS g
+                LEFT JOIN teams as t1 ON t1.id = g.id_home 
+                LEFT JOIN teams as t2 ON t2.id = g.id_away
+                LEFT JOIN league as l ON t1.id_league = l.id AND t2.id_league = l.id
+                LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                    FROM games AS g
+                    LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                    LEFT JOIN actions as a ON a.id = am.id_action
+                    LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                    f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                    GROUP BY g.id ) as g2 ON (g2.id_home = t1.id  OR g2.id_away = t2.id ) AND g.date = g2.date
+                WHERE l.id = %s
+                GROUP BY g.id ORDER BY g.date DESC;
+                """, (league_id,))
+    games_history = cur.fetchall()
+    
+    return render_template("league_history.html", leagues=league, games_history=games_history)
+
+
+@app.route('/league_table/<league_id>', methods=["POST","GET"])
+
+def league_table(league_id):
+    headings = ['Miejsce', "Drużyna", "Rozegrane mecze", "Wygane", "Remisy", "Przegrane", "Punkty ligowe"]
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT l.name AS name, COUNT(*) AS number_of_teams, l.id AS id
+                FROM league as l
+                LEFT JOIN teams as t ON l.id = t.id_league
+                WHERE l.id = %s GROUP BY l.id;""",(league_id,))
+    league = cur.fetchone()
+
+    if not league:
+        cur.close()
+        flash("Wybrana liga nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+
+    cur.execute("""SELECT DISTINCT YEAR(date) as year FROM games ORDER BY date DESC;""")
+    seasons = cur.fetchall()
+
+    if request.method == "POST":
+        year = request.form.get('season_select')
+    else:
+        year = seasons[0]['year']
+
+    cur.execute("""
+                SELECT t.id as id, t.name as team, l.name as league, 
+                COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins,
+                COUNT(CASE WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 END) as draws,
+                COUNT(CASE WHEN home_goals < away_goals AND t.id=g.id_home THEN 1 WHEN away_goals < home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as loses,
+                COUNT((SELECT SUM(CASE WHEN g2.id_away=t.id OR g2.id_home=t.id THEN 1 ELSE NULL END) FROM games AS g2
+                WHERE (g2.id_away=t.id OR g2.id_home=t.id) AND g2.id IS NOT NULL AND YEAR(g.date) = %s)) AS games_played,
+                SUM(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 3 WHEN away_goals > home_goals AND t.id=g.id_away THEN 3  
+                WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 ELSE 0 END) as league_points
+                FROM teams as t
+                LEFT JOIN league as l ON l.id = t.id_league
+                LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                    FROM games AS g
+                    LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                    LEFT JOIN actions as a ON a.id = am.id_action
+                    LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                    f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                    WHERE YEAR(g.date) = %s
+                    GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
+                WHERE l.id=%s  GROUP BY t.id ORDER BY league_points DESC;""",(year,year,league_id))
+    table_content = cur.fetchall()
+    
+    return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons)
 
 #invalid URL
 @app.errorhandler(404)
