@@ -151,7 +151,7 @@ def footballerHistory(footballer_id):
                 AND f.id = %s""", (footballer_id,))
         
     name = cur.fetchone()
-    print(name)
+
     if not name:
         cur.close()
         flash("Wybrany piłkarz nie istnieje","alert alert-danger alert-dismissible")
@@ -165,9 +165,6 @@ def footballerHistory(footballer_id):
                 WHERE f.id = %s
                 GROUP BY dateFrom ORDER BY dateFrom DESC""", (footballer_id,))    
     club_history_content = cur.fetchall()
-
-
-
 
     cur.execute("""
                 SELECT COALESCE(CONCAT('Dodanie pozycji: ',GROUP_CONCAT(p.name SEPARATOR ', ')),'Brak pozycji') as position,  COALESCE(dateFrom,'') as date
@@ -186,10 +183,9 @@ def footballerHistory(footballer_id):
                 """, (footballer_id,footballer_id))    
     position_history_content = cur.fetchall()
 
+    club_history_content2 = club_history_content[::-1] + [{'dateFrom':date.today()}]
+    games_history_content = []
 
-    club_history_content2 = club_history_content + [{'dateFrom':date.today()}]
-    club_history_content3 = []
-    
     for i in range(len(club_history_content2)-1):
         cur.execute("""
                 SELECT ALL CONCAT(t1.name,' : ', t2.name) as game, date, COALESCE(
@@ -204,9 +200,9 @@ def footballerHistory(footballer_id):
                 WHERE (t1.name = %s OR t2.name = %s) AND date BETWEEN %s AND %s
                 ORDER BY g.date DESC
                 """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
-        club_history_content3 += cur.fetchall()
+        games_history_content += cur.fetchall()
 
-    return render_template("footballer_history.html", footballer=name, clubs=club_history_content, positions=position_history_content, matches=club_history_content3)
+    return render_template("footballer_history.html", footballer=name, clubs=club_history_content, positions=position_history_content, matches=games_history_content)
 
 
 
@@ -293,19 +289,28 @@ def rmft(footballer_id):
     
 #clubs
 
-@app.route('/list_of_clubs')
+@app.route('/list_of_clubs', methods=["POST","GET"])
 
 def list_of_clubs():
     headings = ['Lp.', "Drużyna", "Liga", "Rozegrane mecze", "Wygane", "Remisy", "Przegrane", "Punkty ligowe", "Historia", "Edycja"]
     cur = mysql.cursor(dictionary=True)
-    year = 2023;
+
+    
+    cur.execute("""SELECT DISTINCT YEAR(date) as year FROM games ORDER BY date DESC;""")
+    seasons = cur.fetchall()
+
+    if request.method == "POST":
+        year = request.form.get('season_select')
+    else:
+        year = seasons[0]['year']
+
     cur.execute("""
                 SELECT t.id as id, t.name as team, l.name as league, 
                 COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins,
                 COUNT(CASE WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 END) as draws,
                 COUNT(CASE WHEN home_goals < away_goals AND t.id=g.id_home THEN 1 WHEN away_goals < home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as loses,
                 COUNT((SELECT SUM(CASE WHEN g2.id_away=t.id OR g2.id_home=t.id THEN 1 ELSE NULL END) FROM games AS g2
-                WHERE (g2.id_away=t.id OR g2.id_home=t.id) AND g2.id IS NOT NULL)) AS games_played,
+                WHERE (g2.id_away=t.id OR g2.id_home=t.id) AND g2.id IS NOT NULL AND YEAR(g.date) = %s)) AS games_played,
                 SUM(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 3 WHEN away_goals > home_goals AND t.id=g.id_away THEN 3  
                 WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 ELSE 0 END) as league_points
                 FROM teams as t
@@ -319,11 +324,10 @@ def list_of_clubs():
                     f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
                     WHERE YEAR(g.date) = %s
                     GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
-                GROUP BY t.id; 
-                """,(year,))
+                GROUP BY t.id;""",(year,year))
     table_content = cur.fetchall()
-    print(table_content)
-    return render_template("list_of_clubs.html", headings=headings, row=table_content)
+
+    return render_template("list_of_clubs.html", headings=headings, row=table_content, seasons=seasons, year=int(year))
 
 
 @app.route('/add_club', methods=["POST","GET"])
@@ -391,7 +395,77 @@ def club_history(club_id):
         flash("Wybrana drużyna nie istnieje","alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_clubs"))
 
-    return render_template("club_history.html", footballer=name)
+    cur.execute("""
+                SELECT CONCAT(f.name, ' ', f.lastName) AS last_name, CONCAT('</br>Pozycja: ', COALESCE(
+                    (SELECT GROUP_CONCAT(p.name SEPARATOR ', ') 
+                    FROM positionhistory as ph 
+                    JOIN position as p ON p.id = ph.id_position 
+                    WHERE ph.id_footballer = f.id
+                    AND dateEnd is NULL
+                    ), 'Brak pozycji')) as position
+                FROM clubhistory AS ch
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN footballer as f ON f.id = ch.id_footballer 
+                WHERE t.id = %s AND dateFrom = (SELECT MAX(dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer =ch.id_footballer )""", (club_id,))
+    actual_players = cur.fetchall()
+
+    cur.execute("""
+                SELECT CONCAT('Dołączył do klubu: </br>', GROUP_CONCAT(CONCAT(f.name, ' ', f.lastName) SEPARATOR '</br>')) AS last_name, ch.dateFrom as date
+                FROM clubhistory AS ch
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN footballer as f ON f.id = ch.id_footballer 
+                WHERE t.id = %s
+                GROUP BY ch.dateFrom
+                UNION ALL
+                SELECT CONCAT('Odszedł z klubu: </br>', GROUP_CONCAT(CONCAT(f.name, ' ', f.lastName) SEPARATOR '</br>')) AS last_name, ch2.dateFrom as date
+                FROM clubhistory AS ch
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN footballer as f ON f.id = ch.id_footballer 
+                LEFT JOIN (SELECT id_footballer, dateFrom FROM clubhistory WHERE id_team != %s) AS ch2 ON ch2.id_footballer = ch.id_footballer AND ch2.dateFrom > ch.dateFrom
+                WHERE t.id = %s AND ch2.dateFrom > ch.dateFrom
+                GROUP BY ch2.dateFrom ORDER BY date DESC; """, (club_id,club_id,club_id))
+    players_history = cur.fetchall()
+
+    cur.execute("""
+                SELECT CASE WHEN g.id_home = %s THEN t2.name WHEN g.id_away = %s THEN t1.name END AS games, g.date as date, 
+                CASE WHEN g2.id_home = %s THEN CONCAT(home_goals,':',away_goals) ELSE CONCAT(away_goals,':',home_goals) END as test
+                FROM games AS g
+                LEFT JOIN teams as t1 ON t1.id = g.id_home 
+                LEFT JOIN teams as t2 ON t2.id = g.id_away
+                LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                    FROM games AS g
+                    LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                    LEFT JOIN actions as a ON a.id = am.id_action
+                    LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                    LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                    f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                    GROUP BY g.id) as g2 ON (g2.id_home = %s  OR g2.id_away = %s) AND g.date = g2.date
+                WHERE t1.id = %s OR t2.id = %s
+                 ORDER BY g.date DESC;
+                """, (club_id,club_id,club_id,club_id,club_id,club_id,club_id))
+    games_history = cur.fetchall()
+
+    cur.execute("""
+            SELECT
+            COUNT(CASE WHEN home_goals > away_goals AND t.id=g.id_home THEN 1 WHEN away_goals > home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as wins,
+            COUNT(CASE WHEN home_goals = away_goals AND (t.id=g.id_home OR t.id=g.id_away) THEN 1 END) as draws,
+            COUNT(CASE WHEN home_goals < away_goals AND t.id=g.id_home THEN 1 WHEN away_goals < home_goals AND t.id=g.id_away THEN 1 ELSE NULL END) as loses,
+            COUNT((SELECT SUM(CASE WHEN g2.id_away=t.id OR g2.id_home=t.id THEN 1 ELSE NULL END) FROM games AS g2
+            WHERE (g2.id_away=t.id OR g2.id_home=t.id) AND g2.id IS NOT NULL)) AS games_played
+            FROM teams as t
+            LEFT JOIN league as l ON l.id = t.id_league
+            LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                FROM games AS g
+                LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                LEFT JOIN actions as a ON a.id = am.id_action
+                LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
+            WHERE t.id = %s;""",(club_id,))
+    team_stats = cur.fetchone()
+
+    return render_template("club_history.html", footballer=name, actual_players=actual_players, players_history=players_history, games_history=games_history, team_stats=team_stats, number_of_players=len(actual_players))
 
 
 #invalid URL

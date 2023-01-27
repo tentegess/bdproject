@@ -16,27 +16,30 @@
             <i class="bi bi-file-person" style=" font-size: 100px;"></i>
         </div>
         <div class="col-auto">
-        <p>{{footballer.team}}</p>
-        <p>{{footballer.position}}</p>
+        <p>Zwycięstwa: {{team_stats.wins}}</p>
+        <p>Remisy: {{team_stats.draws}}</p>
+        <p>Przegrane: {{team_stats.loses}}</p>
+        <p>Rozegrane mecze: {{team_stats.games_played}}</p>
+        <p>Squaad: {{number_of_players}}</p>
         </div>
     </div>
     <div class="row ">
         <div class="col-12 col-md-4 border-end historyField border-top ">
-            <h4 class="text-muted headers-padding"> Historia klubów </h1>
-            {% for club in clubs %}
-                <p>{{club.dateFrom}} {{ club.club_name }}</p>
+            <h4 class="text-muted headers-padding"> Aktualny skład </h1>
+            {% for player in actual_players %}
+                <p>{{player.last_name}} {{player.position|safe}}</p>
             {% endfor %}
         </div>
         <div class="col-12 col-md-4 border-end historyField border-top">
-            <h4 class="text-muted headers-padding"> Historia pozycji </h1>
-            {% for position in positions %}
-                <p>{{position.date}} {{position.position}}</p>
+            <h4 class="text-muted headers-padding"> Historia transferów </h1>
+            {% for player in players_history %}
+                <p>{{player.date}} {{player.last_name|safe}}</p>
             {% endfor %}
         </div>
         <div class="col-12 col-md-4 border-top">
             <h4 class="text-muted headers-padding "> Historia meczy </h1>
-                {% for match in matches %}
-                    <p>{{match.date}} {{match.game}} <br> {{match.akcje|safe}}</p>
+                {% for game in games_history %}
+                    <p>{{game.date}} {{game.games}} {{game.test}}</p>
                 {% endfor %}
         </div>
     </div>
@@ -47,8 +50,8 @@
 
 {% block script %}
     <script>
-        document.getElementById('ft_collapse').classList.add('show');
-        document.getElementById('ft_collapse_btn').setAttribute('aria-expanded', 'true');
-        document.getElementById('ft_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('club_collapse').classList.add('show');
+        document.getElementById('club_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('club_collapse_btn').setAttribute('style', 'color:white !important');
     </script>
 {% endblock %}
