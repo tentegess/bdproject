@@ -109,6 +109,7 @@ def list_of_ft():
     else:
         year = seasons[0]['year']
 
+    print(year)
 
     for action in action_list:
         cur.execute("""
@@ -143,7 +144,7 @@ def list_of_ft():
     cur.close()
 
 
-    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values, seasons=seasons)
+    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values, seasons=seasons, year=int(year))
 
 
 @app.route('/footballer_history/<footballer_id>')
@@ -615,7 +616,7 @@ def league_table(league_id):
                 WHERE l.id=%s  GROUP BY t.id ORDER BY league_points DESC;""",(year,year,league_id))
     table_content = cur.fetchall()
     
-    return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons)
+    return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons, year=int(year))
 
 #invalid URL
 @app.errorhandler(404)

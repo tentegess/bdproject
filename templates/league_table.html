@@ -3,7 +3,7 @@
 {% block content %}
 <h1 class="text-muted headers-padding">{{leagues.name}}</h1>
     <hr class="divider mt-0">
-    <div class="headers-padding" style="padding-right: 15px;">
+    <div class="headers-padding row" style="padding-right: 15px;">
 
         {% for category, message in get_flashed_messages(with_categories=true) %}
             <div role="alert" class="{{ category }}">{{ message }}
@@ -19,6 +19,18 @@
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
             </div>
         </div>
+
+        <div class="col-12 col-md-6 col-lg-2">
+            <form method="POST" action="#" class="px-2">
+                <select class="form-select" aria-label="Default select example" name='season_select' onchange="this.form.submit()">
+                    {% for season in seasons %}
+                    <option value="{{season.year}}" {{ 'selected' if season.year == year else "" }} >{{season.year}}</option>
+                    {% endfor %}
+                    
+                </select>
+            </form>
+    </div>
+
     </div>
 
     <table class="table text-center">
@@ -44,14 +56,7 @@
         </tbody>
     </table>
 
-    <form method="POST" action="#" class="px-2">
-        <select class="form-select" aria-label="Default select example" name='season_select' onchange="this.form.submit()">
-            {% for season in seasons %}
-            <option value="{{season.year}}" {{ 'selected' if season.year == year else "" }} >{{season.year}}</option>
-            {% endfor %}
-            
-        </select>
-    </form>
+    
 
 
 {% endblock  %}
