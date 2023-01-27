@@ -160,6 +160,24 @@ def footballerHistory(footballer_id):
         cur.close()
         flash("Wybrany piłkarz nie istnieje","alert alert-danger alert-dismissible")
         return redirect(url_for("list_of_ft"))
+    
+    cur.execute("SELECT id, name FROM actions")
+    action_list = cur.fetchall()
+    actions_names= list(map(lambda x: x['name'], action_list))
+    action_values = []
+
+    for action in action_list:
+        cur.execute("""
+                    SELECT COUNT(a.name) as counted 
+                    FROM footballer as f
+                    LEFT JOIN actionsinmatch as am ON am.id_footballer = f.id
+                    LEFT JOIN actions as a  ON a.id = am.id_action AND a.name = %s
+                    WHERE f.id=%s""", (action['name'],footballer_id))    
+        action_values.append(cur.fetchone())
+
+    actions=dict(zip(actions_names, list(map(lambda x: x['counted'], action_values))))
+    
+    print(actions)
 
     cur.execute("""
                 SELECT COALESCE(t.name,'Brak drużyny') AS club_name, COALESCE(dateFrom,'') as dateFrom
@@ -206,7 +224,7 @@ def footballerHistory(footballer_id):
                 """, (footballer_id,club_history_content2[i]['club_name'],club_history_content2[i]['club_name'],club_history_content2[i]['dateFrom'],club_history_content2[i+1]['dateFrom']))  
         games_history_content += cur.fetchall()
 
-    return render_template("footballer_history.html", footballer=name, clubs=club_history_content, positions=position_history_content, matches=games_history_content)
+    return render_template("footballer_history.html", footballer=name, clubs=club_history_content, positions=position_history_content, matches=games_history_content, actions=actions)
 
 
 

@@ -18,6 +18,9 @@
         <div class="col-auto">
         <p>{{footballer.team}}</p>
         <p>{{footballer.position}}</p>
+        {% for action in actions %}
+            <p>{{action}}: {{actions[action]}}</p>
+        {% endfor %}
         </div>
     </div>
     <div class="row ">
