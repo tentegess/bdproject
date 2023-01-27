@@ -115,9 +115,10 @@ def list_of_ft():
         cur.execute("""
                     SELECT COUNT(a.name) as counted, f.id 
                     FROM footballer as f
-                    LEFT JOIN actionsinmatch as am ON am.id_footballer = f.id
-                    LEFT JOIN actions as a  ON a.id = am.id_action AND a.name = %s
-                    LEFT JOIN games as g ON g.id = am.id_match AND YEAR(g.date) = %s
+                    LEFT JOIN actionsinmatch as am ON am.id_footballer = f.id 
+                    LEFT JOIN games as g ON g.id = am.id_match 
+                    LEFT JOIN actions as a  ON a.id = am.id_action AND a.name = %s AND YEAR(g.date) = %s
+                    
                     GROUP BY f.id ORDER BY f.id""", (action['name'],year))    
         action_list_values.append(cur.fetchall())
 
