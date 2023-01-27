@@ -90,7 +90,7 @@ def addft():
     else:    
         return render_template("addfootballer.html", teams=teams_list, positions=positions_list)
 
-@app.route('/list_of_footballers')
+@app.route('/list_of_footballers', methods=["POST","GET"])
 
 def list_of_ft():
     headings = ['Lp.', "Imie i Nazwisko", "Pozycja", "Drużyna"]
@@ -100,13 +100,24 @@ def list_of_ft():
     headings += list(map(lambda x: x['name'], action_list)) + ['Historia']+['Edycja']
     action_list_values = []
 
+    cur.execute("""SELECT DISTINCT YEAR(date) as year FROM games ORDER BY date DESC;""")
+    seasons = cur.fetchall()
+
+    
+    if request.method == "POST":
+        year = request.form.get('season_select')
+    else:
+        year = seasons[0]['year']
+
+
     for action in action_list:
         cur.execute("""
                     SELECT COUNT(a.name) as counted, f.id 
                     FROM footballer as f
                     LEFT JOIN actionsinmatch as am ON am.id_footballer = f.id
                     LEFT JOIN actions as a  ON a.id = am.id_action AND a.name = %s
-                    GROUP BY f.id ORDER BY f.id""", (action['name'],))    
+                    LEFT JOIN games as g ON g.id = am.id_match AND YEAR(g.date) = %s
+                    GROUP BY f.id ORDER BY f.id""", (action['name'],year))    
         action_list_values.append(cur.fetchall())
 
 
@@ -123,15 +134,16 @@ def list_of_ft():
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
                 LEFT JOIN teams as t ON ch.id_team = t.id
+                LEFT JOIN games as g ON g.id_home = t.id AND YEAR(g.date) = %s
                 WHERE dateFrom = (SELECT MAX(dateFROM) FROM clubhistory WHERE id_footballer = f.id ) OR dateFROM IS NULL
-                GROUP BY f.id ORDER BY f.id""")
+                GROUP BY f.id ORDER BY f.id""", (year,)) 
 
     table_content = cur.fetchall()
     mysql.commit()
     cur.close()
 
 
-    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values,)
+    return render_template("list_of_ft.html", headings=headings, row=table_content, actions=action_list_values, seasons=seasons)
 
 
 @app.route('/footballer_history/<footballer_id>')

@@ -22,6 +22,15 @@
         </div>
     </div>
 
+    <form method="POST" action="#" class="px-2 py-2">
+        <select class="form-select" aria-label="Default select example" name='season_select' onchange="this.form.submit()">
+            {% for season in seasons %}
+            <option value="{{season.year}}" {{ 'selected' if season.year == year else "" }} >{{season.year}}</option>
+            {% endfor %}
+            
+        </select>
+    </form>
+
     <table class="table text-center">
         <thead>
             <tr>
