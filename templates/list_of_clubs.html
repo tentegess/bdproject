@@ -43,7 +43,7 @@
         <tbody>
             {% for value in row %}
                 <tr class="tabrow">
-                    <td>{{ loop.index }}</td>
+                    <td class="p-0">{{ loop.index }}</td>
                     <td>{{ value.team }}</td>
                     <td>{{ value.league }}</td>
                     <td>{{ value.games_played }}</td>
@@ -52,7 +52,7 @@
                     <td>{{ value.loses }}</td>
                     <td>{{ value.league_points }}</td>
                     <td><a class="btn btn-dark btn-sm " style='width:32px;' href='club_history/{{ value.id }}'  role="button"><i class="bi bi-clock-history"></i></td>
-                    <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
+                    <td><a class="btn btn-dark btn-sm " href="edit_club/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
                         <a class="btn btn-danger btn-sm " href="remove_team/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>
                 </tr>
             {% endfor %}

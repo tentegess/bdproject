@@ -503,6 +503,47 @@ def club_history(club_id):
 
     return render_template("club_history.html", team=name, actual_players=actual_players, players_history=players_history, games_history=games_history, team_stats=team_stats, number_of_players=len(actual_players))
 
+@app.route('/edit_club/<club_id>', methods=["POST","GET"])
+
+def edit_club(club_id, methods=["POST","GET"]):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""SELECT t.id, t.name as club, l.name as league FROM teams t
+                INNER JOIN league l ON t.id_league=l.id WHERE t.id=%s""",(club_id,))
+    club=cur.fetchone()
+    if not club:
+        cur.close()
+        flash("Wybrana drużyna nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_clubs"))
+    cur.close()
+    
+    if request.method == "POST":
+        name=request.form.get('name').strip()
+        if name:
+            try:
+                cur = mysql.cursor()
+                cur.execute("""SELECT id, COUNT(name) as counter FROM teams WHERE name=%s""",(name,))
+                counter=cur.fetchone()
+                if counter[1]>0 and str(counter[0])!=club_id:
+                    flash("Taka drużyna już istnieje","alert alert-danger alert-dismissible")
+                    cur.close()
+                    return redirect(url_for("list_of_clubs"))
+                cur.execute("""UPDATE teams SET name=%s WHERE id=%s""",(name,club_id))
+                cur.close()
+                mysql.commit()
+                flash("Pomyślnie zaktualizowano drużynę","alert alert-success alert-dismissible")
+                return redirect(url_for("list_of_clubs"))
+            except Exception as e:
+                mysql.rollback()
+                cur.close()
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+                return redirect(url_for("list_of_clubs"))
+        else:
+            flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+            return redirect(url_for("edit_club", club_id=club_id))
+            
+    return render_template("edit_club.html", club=club)
+
+#leagues
 
 @app.route('/list_of_leagues', methods=["POST","GET"])
 
@@ -525,10 +566,87 @@ def list_of_leagues():
 @app.route('/add_league', methods=["POST","GET"])
 
 def addleague():
-    cur = mysql.cursor(dictionary=True)
+    if request.method == "POST":
+        name=request.form.get('name').strip()
+        if name:
+            cur = mysql.cursor()
+            cur.execute("""SELECT COUNT(name) as counter FROM league WHERE name=%s""",(name,))
+            counter=cur.fetchone()
+            if counter[0]>0:
+                    cur.close()
+                    flash("Taka liga już istnieje","alert alert-danger alert-dismissible")
+                    return render_template("addleague.html")
+            try:
+                cur.execute("INSERT INTO league(name) VALUES(%s)",(name,))
+                mysql.commit()
+                cur.close()
+                flash("Pomyślnie dodano ligę","alert alert-success alert-dismissible")
+                return redirect(url_for("list_of_leagues"))
+            except Exception as e:
+                mysql.rollback()
+                cur.close()
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+                return render_template("addleague.html")
+        else:
+            flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+            return redirect(url_for("addleague"))
     
     return render_template("addleague.html")
 
+@app.route('/remove_league/<league_id>')
+
+def rmleague(league_id):
+    cur = mysql.cursor()
+    try:
+        cur.execute("DELETE FROM league WHERE id=%s",(league_id,))
+        mysql.commit()
+        cur.close()
+        flash("Pomyślnie usunięto ligę","alert alert-success alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+    except Exception as e:
+        mysql.rollback()
+        cur.close()
+        flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+
+@app.route('/edit_league/<league_id>', methods=["POST","GET"])
+
+def edit_league(league_id, methods=["POST","GET"]):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""SELECT id, name FROM league WHERE id=%s""",(league_id,))
+    league=cur.fetchone()
+    if not league:
+        cur.close()
+        flash("Wybrana liga nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+    cur.close()
+    
+    if request.method == "POST":
+        name=request.form.get('name').strip()
+        if name:
+            try:
+                cur = mysql.cursor()
+                cur.execute("""SELECT id, COUNT(name) as counter FROM league WHERE name=%s""",(name,))
+                counter=cur.fetchone()
+                if counter[1]>0 and str(counter[0])!=league_id:
+                    flash("Taka liga już istnieje","alert alert-danger alert-dismissible")
+                    cur.close()
+                    return redirect(url_for("list_of_leagues"))
+                cur.execute("""UPDATE league SET name=%s WHERE id=%s""",(name,league_id))
+                cur.close()
+                mysql.commit()
+                flash("Pomyślnie zaktualizowano ligę","alert alert-success alert-dismissible")
+                return redirect(url_for("list_of_leagues"))
+            except Exception as e:
+                mysql.rollback()
+                cur.close()
+                flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+                return redirect(url_for("list_of_leagues"))
+        else:
+            flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+            return redirect(url_for("edit_league", league_id=league_id))
+            
+    return render_template("edit_league.html", league=league)
 
 @app.route('/league_history/<league_id>')
 

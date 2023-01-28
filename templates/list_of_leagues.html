@@ -37,8 +37,8 @@
                     <td>{{ value.number_of_teams }}</td>
                     <td><a class="btn btn-dark btn-sm " style='width:32px;' href='league_table/{{ value.id }}'  role="button"><i class="bi bi-clock-history"></i></td>
                     <td><a class="btn btn-dark btn-sm " style='width:32px;' href='league_history/{{ value.id }}'  role="button"><i class="bi bi-clock-history"></i></td>
-                    <td><a class="btn btn-dark btn-sm " href="update_footballer/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
-                        <a class="btn btn-danger btn-sm " href="remove_team/{{ value.t_id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>
+                    <td><a class="btn btn-dark btn-sm " href="edit_league/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-gear-fill"></i></a>
+                        <a class="btn btn-danger btn-sm " href="remove_league/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>
                 </tr>
             {% endfor %}
         </tbody>
