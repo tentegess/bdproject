@@ -1,0 +1,99 @@
+<div id="ac">
+
+</div>
+<button type="button" class="btn btn-success btn-sm" id="add_action" onclick="newAction()"><i class="bi bi-plus"></i></button>
+<div class="row my-2">
+    <hr class="divider mb-1">
+    <div class="float-end">
+        <button type="submit" name="tmsub" class="btn btn-primary">Dodaj</button>
+    </div>
+  </div>
+<script>
+    var actions_ids=[
+        {% for action in actions%}
+          {{action.id}}
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        var actions_names=[
+        {% for action in actions%}
+          '{{action.name}}'
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        var players_ids=[
+        {% for player in players%}
+          {{player.ftid}}
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        var players_names=[
+        {% for player in players%}
+          '{{player.player}}'
+          {{ ", " if not loop.last else "" }}
+          {% endfor %}
+        ]
+
+        function newAction(){
+            var html='';
+            html+="<div class='row my-2'>"
+            html+="<div class='col-6 ps-0'>"   
+            html+="<select class='form-select req_act' name='players[]' onchange='checkAction()' Required>"
+            html+="<option value='' disabled selected hidden selected>Wybierz piłkarza</option>" 
+            for(var i=0; i<players_ids.length; i++){
+                html+="<option value='"+players_ids[i]+"'>"+players_names[i]+"</option>"
+              }
+            html+="</select>"
+            html+="</div>"
+
+            html+="<div class='col-3 px-1'>"
+            html+="<select class='form-select req_act' name='players_ac[]' onchange='checkAction()' Required>"
+            html+="<option value='' disabled selected hidden selected>Wybierz piłkarza</option>"
+            for(var i=0; i<actions_ids.length; i++){
+                html+="<option value='"+actions_ids[i]+"'>"+actions_names[i]+"</option>"
+              } 
+            html+="</select>" 
+            html+="</div>"
+
+            html+="<div class='col-2 px-1'>"
+            html+="<input type='number' class='form-control req_act' name='ac_time[]' min='1' max='200' onchange='checkAction()' Required>"
+            html+="</div>"
+
+            html+="<div class='col-1 pe-0'>"
+            html+="<button type='button' class='btn btn-danger rm_ac'><i class='bi bi-dash-lg'></i></button>"  
+            html+="</div>"
+
+            $("#ac").append(html)
+            checkAction()
+        }
+
+        $(document).on('click', '.rm_ac', function(){
+            let row=$(this).parent().parent();
+            $(row).remove();
+            checkAction()
+          })
+
+        function checkAction(){
+            let inputs = document.getElementsByClassName('req_act');
+            var invalid;
+            if(inputs.length>0){
+                for (var i=0; i<inputs.length; i++){
+                if(inputs[i].value.trim()=="" || inputs[i].value==null){
+                    invalid=true;
+                    break;
+                }
+                else{
+                    invalid=false;
+                }
+                }
+            }
+            else{
+                invalid=false;
+            }  
+            $("#add_action").prop('disabled',invalid)
+          }
+
+</script>

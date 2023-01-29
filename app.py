@@ -26,7 +26,7 @@ app.config['SECRET_KEY']="Arek"
 def index():
     cur = mysql.cursor(dictionary=True)
     cur.execute("""SELECT COUNT(name) AS footballers, (SELECT COUNT(name) FROM teams) AS teams,
-                (SELECT COUNT(name) FROM league) AS league FROM footballer""")
+                (SELECT COUNT(name) FROM league) AS league, (SELECT COUNT(id) FROM games) AS games  FROM footballer""")
     counts=cur.fetchone()
     cur.close()
     return render_template("index.html", counts=counts)
@@ -219,7 +219,7 @@ def footballerHistory(footballer_id):
                 """, (footballer_id,footballer_id))    
     position_history_content = cur.fetchall()
 
-    club_history_content2 = club_history_content[::-1] + [{'dateFrom':date.today()}]
+    club_history_content2 = club_history_content[::-1] + [{'dateFrom':date(9999,12,31)}]
     games_history_content = []
 
     for i in range(len(club_history_content2)-1):
@@ -737,6 +737,91 @@ def league_table(league_id):
     
     return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons, year=int(year))
 
+@app.route('/addgame', methods=["POST","GET"])
+
+def addgame():
+    cur = mysql.cursor(dictionary=True)
+    cur.execute(""" SELECT l.name AS name, l.id AS id
+                FROM league as l
+                INNER JOIN teams as t ON l.id = t.id_league
+                GROUP BY l.id HAVING COUNT(t.id) >= 2;""")
+    leagues=cur.fetchall()
+    cur.close()
+    
+    if request.method == "POST":
+        cur = mysql.cursor(dictionary=True)
+        try:
+            league=request.form.get('league')
+            home=request.form.get('home')
+            away=request.form.get('away')
+            gamedate=request.form.get('gamedate')
+            if league and home and away and gamedate:
+                cur.execute("INSERT INTO games(id_home,id_away,date) VALUES(%s,%s,%s)",(home,away,gamedate))
+                last_game_id=cur.lastrowid
+                if request.form.getlist('players[]') and request.form.getlist('players_ac[]') and request.form.getlist('ac_time[]'):
+                    players=request.form.getlist('players[]')
+                    players_ac=request.form.getlist('players_ac[]')
+                    ac_time=request.form.getlist('ac_time[]')
+                    if len(players) == len(players_ac) == len(ac_time):
+                        for i in range(0, len(players)):
+                            cur.execute("INSERT INTO actionsinmatch(id_match,id_footballer,id_action,time) VALUES(%s,%s,%s,%s)",(last_game_id,players[i],players_ac[i],ac_time[i]))     
+                    else:
+                        cur.close()
+                        flash("liczba akcji jest niezgodna z liczbą piłkarzy","alert alert-danger alert-dismissible")
+                        return redirect(url_for("addgame")) 
+                    
+                    
+                cur.close()
+                mysql.commit()
+                flash("Pomyślnie dodano rozgrywkę","alert alert-success alert-dismissible")
+                #tu też redirect do listy
+                return redirect(url_for("index"))
+            else:
+                cur.close()
+                flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+                return redirect(url_for("addgame"))
+        except Exception as e:
+            mysql.rollback()
+            cur.close()
+            flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+            #tu zmienić na liste gier jak będzie
+            return redirect(url_for("list_of_leagues"))
+    
+    return render_template("addgame.html", leagues=leagues)
+
+#partials
+@app.get('/getteams')
+
+def getteams():
+    league=request.args.get('league')
+    if not league:
+        return render_template("partials/blank.html")
+    cur=mysql.cursor(dictionary=True)
+    cur.execute("SELECT id, name FROM teams WHERE id_league=%s",(league,))
+    teams=cur.fetchall()
+    cur.close()
+    return render_template("partials/getteams.html",teams=teams)
+
+@app.get('/getplayers')
+
+def getplayers():
+    home=request.args.get('home')
+    away=request.args.get('away')
+    date=request.args.get('gamedate')
+    if not home or not away or not date:
+        return render_template("partials/blank.html")
+    cur=mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT f.id AS ftid, CONCAT(t.name,'-',f.name, ' ', f.lastName) AS player
+                FROM clubhistory AS ch
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN footballer as f ON f.id = ch.id_footballer 
+                WHERE t.id IN(%s,%s) AND dateFrom = (SELECT MAX(dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer =ch.id_footballer AND ch2.dateFrom<=%s )""", (home,away,date))
+    players=cur.fetchall()
+    cur.execute("SELECT id, name FROM actions")
+    action_list = cur.fetchall()
+    cur.close()
+    return render_template("partials/getplayers.html", players=players, actions=action_list)
 #invalid URL
 @app.errorhandler(404)
 
