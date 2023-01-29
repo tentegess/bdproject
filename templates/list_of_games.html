@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-muted headers-padding">Lista Rozgrywek</h1>
+    <hr class="divider mt-0">
+    <div class="headers-padding" style="padding-right: 15px;">
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div role="alert" class="{{ category }}">{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="input-group">
+                <input type="text" class="form-control" id="searchBox" placeholder="Wyszukaj ligi">
+                <button type="button" class="btn bg-transparent clrBtn" style="margin-left: -40px; z-index: 100;">
+                    <i class="bi bi-x"></i>
+                </button>
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+            </div>
+        </div>
+    </div>
+
+    <table class="table text-center">
+        <thead>
+            <tr>
+                {% for header in headings %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for value in row %}
+                <tr class="tabrow">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ value.game }}</td>
+                    <td>{{ value.result }}</td>
+                    <td>{{ value.date }}</td>
+                    <td><a class="btn btn-dark btn-sm " style='width:32px;' href='game_history/{{ value.id }}'  role="button"><i class="bi bi-clock-history"></i></td>
+                    <td><a class="btn btn-danger btn-sm " href="remove_game/{{ value.id }}" style='width:32px;' role="button"><i class="bi bi-trash-fill"></i></a></td>  
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock  %}
+
+
+
+{% block script %}
+    <script>
+        document.getElementById('games_collapse').classList.add('show');
+        document.getElementById('games_collapse_btn').setAttribute('aria-expanded', 'true');
+        document.getElementById('games_collapse_btn').setAttribute('style', 'color:white !important');
+        document.getElementById('games_lists').setAttribute('style', 'color:white !important');
+
+        $(document).ready(function(){
+            $("#searchBox").on("keyup", function() {
+              var value = $(this).val().toLowerCase();
+              $(".tabrow").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+              });
+            });
+          });
+          
+          
+          $('.clrBtn').click(function(){
+                  $('#searchBox').val('');
+                  $(".tabrow").filter(function() {
+                  $(this).toggle($(this).text().toLowerCase().indexOf('') > -1)
+              });
+              })  
+    </script>
+{% endblock %}

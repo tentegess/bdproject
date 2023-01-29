@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="text-muted headers-padding">{{ leagues.name }}</h1>
+<h1 class="text-muted headers-padding">{{ game.name }}</h1>
     <hr class="divider mt-0">
     <div class="headers-padding" style="padding-right: 15px;">
 
@@ -13,7 +13,7 @@
     <div class="container-fluid d-flex flex-column">
     <div class="row justify-content-center">
         <div class="col-auto py-0 my-0">
-            <i class="bi bi-award" style=" font-size: 100px;"></i>
+            <i class="bi bi-fan" style=" font-size: 100px;"></i>
         </div>
         <div class="col-auto">
         
@@ -22,8 +22,8 @@
     <div class="row justify-content-center">
         <div class="col-12 col-md-4 border-top">
             <h4 class="text-muted headers-padding "> Historia meczy </h1>
-                {% for game in games_history %}
-                    <p>{{game.date}} {{game.games}}</p>
+                {% for action in actions %}
+                    <p>{{action.action}}</p>
                 {% endfor %}
         </div>
     </div>

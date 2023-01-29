@@ -101,15 +101,18 @@ def list_of_ft():
     action_list_values = []
 
     cur.execute("""SELECT DISTINCT YEAR(date) as year FROM games ORDER BY date DESC;""")
-    seasons = cur.fetchall()
+    seasons = cur.fetchone()
 
     
     if request.method == "POST":
         year = request.form.get('season_select')
     else:
-        year = seasons[0]['year']
+        if seasons:
+            year = seasons['year']
+        else:
+            year = date.today().year
+            seasons = [{'year':int(year)}]
 
-    print(year)
 
     for action in action_list:
         cur.execute("""
@@ -338,7 +341,11 @@ def list_of_clubs():
     if request.method == "POST":
         year = request.form.get('season_select')
     else:
-        year = seasons[0]['year']
+        if seasons:
+            year = seasons['year']
+        else:
+            year = date.today().year
+            seasons = [{'year':int(year)}]
 
     cur.execute("""
                 SELECT t.id as id, t.name as team, l.name as league, 
@@ -468,14 +475,14 @@ def club_history(club_id):
                 FROM games AS g
                 LEFT JOIN teams as t1 ON t1.id = g.id_home 
                 LEFT JOIN teams as t2 ON t2.id = g.id_away
-                LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                LEFT JOIN (SELECT g.id, g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
                     FROM games AS g
                     LEFT JOIN actionsinmatch as am ON g.id = am.id_match
                     LEFT JOIN actions as a ON a.id = am.id_action
                     LEFT JOIN footballer as f ON am.id_footballer = f.id 
                     LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
                     f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
-                    GROUP BY g.id) as g2 ON (g2.id_home = %s  OR g2.id_away = %s) AND g.date = g2.date
+                    GROUP BY g.id) as g2 ON (g2.id_home = %s  OR g2.id_away = %s) AND g.date = g2.date AND g.id = g2.id
                 WHERE t1.id = %s OR t2.id = %s
                  ORDER BY g.date DESC;
                 """, (club_id,club_id,club_id,club_id,club_id,club_id,club_id))
@@ -710,7 +717,11 @@ def league_table(league_id):
     if request.method == "POST":
         year = request.form.get('season_select')
     else:
-        year = seasons[0]['year']
+        if seasons:
+            year = seasons['year']
+        else:
+            year = date.today().year
+            seasons = [{'year':int(year)}]
 
     cur.execute("""
                 SELECT t.id as id, t.name as team, l.name as league, 
@@ -775,11 +786,11 @@ def addgame():
                 mysql.commit()
                 flash("Pomyślnie dodano rozgrywkę","alert alert-success alert-dismissible")
                 #tu też redirect do listy
-                return redirect(url_for("index"))
+                return redirect(url_for("list_of_games"))
             else:
                 cur.close()
                 flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
-                return redirect(url_for("addgame"))
+                return redirect(url_for("list_of_games"))
         except Exception as e:
             mysql.rollback()
             cur.close()
@@ -822,6 +833,81 @@ def getplayers():
     action_list = cur.fetchall()
     cur.close()
     return render_template("partials/getplayers.html", players=players, actions=action_list)
+
+@app.route('/list_of_games', methods=["POST","GET"])
+
+def list_of_games():
+    headings = ['Lp.', "Mecz", "Wynik", "Data", "Przebieg spotkania", "Usuń"]
+    cur = mysql.cursor(dictionary=True)
+    
+    cur.execute("""
+            SELECT CASE WHEN g.id_home = t1.id THEN CONCAT(t2.name, ' - ', t1.name) WHEN g.id_away = t2.id THEN CONCAT(t1.name, ' - ', t2.name) END AS game, g.date as date, 
+            CASE WHEN g2.id_home = t1.id THEN CONCAT(home_goals,':',away_goals) ELSE CONCAT(away_goals,':',home_goals) END as result, g.id as id
+            FROM games AS g
+            LEFT JOIN teams as t1 ON t1.id = g.id_home 
+            LEFT JOIN teams as t2 ON t2.id = g.id_away
+            LEFT JOIN league as l ON t1.id_league = l.id AND t2.id_league = l.id
+            LEFT JOIN (SELECT g.date, g.id_home, g.id_away, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team=g.id_home THEN 1 END) as home_goals, COUNT(CASE WHEN a.name = 'Gol' AND ch.id_team =g.id_away THEN 1 END) as away_goals
+                FROM games AS g
+                LEFT JOIN actionsinmatch as am ON g.id = am.id_match
+                LEFT JOIN actions as a ON a.id = am.id_action
+                LEFT JOIN footballer as f ON am.id_footballer = f.id 
+                LEFT JOIN clubhistory as ch ON (ch.id_team = g.id_away OR ch.id_team = g.id_home) AND 
+                f.id = ch.id_footballer AND (SELECT MAX(ch2.dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer=f.id AND ch2.dateFrom<= g.date) = ch.dateFrom
+                GROUP BY g.id ) as g2 ON (g2.id_home = t1.id  OR g2.id_away = t2.id ) AND g.date = g2.date
+            GROUP BY g.id ORDER BY g.date DESC;""")
+    games_history = cur.fetchall()
+
+    return render_template("list_of_games.html", headings=headings, row=games_history)
+
+
+@app.route('/game_history/<game_id>', methods=["POST","GET"])
+
+def game_history(game_id):
+    cur = mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT CONCAT(t1.name, " : ", t2.name) as name
+                FROM games as g
+                LEFT JOIN teams as t1 ON t1.id = g.id_home 
+                LEFT JOIN teams as t2 ON t2.id = g.id_away
+                WHERE g.id = %s;""",(game_id,))
+    game = cur.fetchone()
+
+    if not game:
+        cur.close()
+        flash("Wybrana liga nie istnieje","alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_leagues"))
+
+    cur.execute("""
+                SELECT ALL COALESCE(CONCAT(am.time, " : ", a.name, " ", t.name, " ", f.lastName , " ", f.name), 'Brak akcji') as action
+                FROM games as g
+                LEFT JOIN actionsinmatch as am ON am.id_match = g.id
+                LEFT JOIN footballer as f ON f.id = am.id_footballer
+                LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN actions as a ON a.id = am.id_action
+                WHERE g.id = %s ORDER BY am.time DESC;""",(game_id,))
+    actions = cur.fetchall()
+    
+    return render_template("game_history.html", game=game, actions=actions)
+
+
+@app.route('/remove_game/<game_id>')
+
+def rmgame(game_id):
+    cur = mysql.cursor()
+    try:
+        cur.execute("DELETE FROM games WHERE id=%s",(game_id,))
+        mysql.commit()
+        cur.close()
+        flash("Pomyślnie usunięto rozgrywkę","alert alert-success alert-dismissible")
+        return redirect(url_for("list_of_games"))
+    except Exception as e:
+        mysql.rollback()
+        cur.close()
+        flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+        return redirect(url_for("list_of_games"))
+
 #invalid URL
 @app.errorhandler(404)
 
