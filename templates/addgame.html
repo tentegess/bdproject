@@ -28,11 +28,6 @@
               </div>
               <div class="row my-2 teams">
               </div>
-
-              <div class="row my-2 actions">
-             </div>
-
-              
         </form>
     </div>
 
@@ -41,6 +36,12 @@
 {% block script %}
 <script src="https://unpkg.com/htmx.org@1.7.0"></script>
 <script>
+
+    document.getElementById('games_collapse').classList.add('show');
+    document.getElementById('games_collapse_btn').setAttribute('aria-expanded', 'true');
+    document.getElementById('games_collapse_btn').setAttribute('style', 'color:white !important');
+    document.getElementById('addgame').setAttribute('style', 'color:white !important');
+
     function checkteam(){
         if($("#home").val()){
             var home=parseInt($("#home").val())
@@ -59,5 +60,6 @@
             $('#data').attr('disabled',true)
         }
     }
+
 </script>
 {% endblock %}

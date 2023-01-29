@@ -41,7 +41,7 @@
             var html='';
             html+="<div class='row my-2'>"
             html+="<div class='col-6 ps-0'>"   
-            html+="<select class='form-select req_act' name='' onchange='checkAction()' Required>"
+            html+="<select class='form-select req_act' name='players[]' onchange='checkAction()' Required>"
             html+="<option value='' disabled selected hidden selected>Wybierz piłkarza</option>" 
             for(var i=0; i<players_ids.length; i++){
                 html+="<option value='"+players_ids[i]+"'>"+players_names[i]+"</option>"
@@ -50,7 +50,7 @@
             html+="</div>"
 
             html+="<div class='col-3 px-1'>"
-            html+="<select class='form-select req_act' name='' onchange='checkAction()' Required>"
+            html+="<select class='form-select req_act' name='players_ac[]' onchange='checkAction()' Required>"
             html+="<option value='' disabled selected hidden selected>Wybierz piłkarza</option>"
             for(var i=0; i<actions_ids.length; i++){
                 html+="<option value='"+actions_ids[i]+"'>"+actions_names[i]+"</option>"
@@ -59,7 +59,7 @@
             html+="</div>"
 
             html+="<div class='col-2 px-1'>"
-            html+="<input type='number' class='form-control req_act' name='' min='1' max='200' onchange='checkAction()'>"
+            html+="<input type='number' class='form-control req_act' name='ac_time[]' min='1' max='200' onchange='checkAction()' Required>"
             html+="</div>"
 
             html+="<div class='col-1 pe-0'>"

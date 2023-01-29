@@ -66,6 +66,27 @@
                 </div>
             </div>
 
+            <div class="col-12 col-sm-6 col-xl-3 mb-3">
+                <div class="card text-white bg-dark h-100" >
+                    <div class="card-header">
+                        <i class="bi bi-fan"></i>&nbspRozgrywki
+                        <a style='float:right;' class="text-white" href="{{url_for("addgame")}}" >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Rozgrywek: {{counts.games}} </h5>
+                        <p class="card-text">
+                        </p>                       
+                    </div>
+                    <a href="{{url_for("list_of_leagues")}}" id="orders_lists" class="nav-link text-white p-0">
+                        <div class="card-footer p-3">
+                            Przeglądaj rozgrywki        
+                        </div>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 {% endblock  %}

@@ -26,7 +26,7 @@ app.config['SECRET_KEY']="Arek"
 def index():
     cur = mysql.cursor(dictionary=True)
     cur.execute("""SELECT COUNT(name) AS footballers, (SELECT COUNT(name) FROM teams) AS teams,
-                (SELECT COUNT(name) FROM league) AS league FROM footballer""")
+                (SELECT COUNT(name) FROM league) AS league, (SELECT COUNT(id) FROM games) AS games  FROM footballer""")
     counts=cur.fetchone()
     cur.close()
     return render_template("index.html", counts=counts)
@@ -748,6 +748,31 @@ def addgame():
     leagues=cur.fetchall()
     cur.close()
     
+    if request.method == "POST":
+        cur = mysql.cursor(dictionary=True)
+        try:
+            league=request.form.get('league')
+            home=request.form.get('home')
+            away=request.form.get('away')
+            gamedate=request.form.get('gamedate')
+            if league and home and away and gamedate:
+                cur.execute("INSERT INTO games(id_home,id_away,date) VALUES(%s,%s,%s)",(home,away,gamedate))
+                cur.close()
+                mysql.commit()
+                flash("Pomyślnie dodano rozgrywkę","alert alert-success alert-dismissible")
+                #tu też redirect do listy
+                return redirect(url_for("index"))
+            else:
+                cur.close()
+                flash("Należy uzupełnić dane","alert alert-danger alert-dismissible")
+                return redirect(url_for("addgame"))
+        except Exception as e:
+            mysql.rollback()
+            cur.close()
+            flash("Wystąpił błąd w bazie danych: "+str(e),"alert alert-danger alert-dismissible")
+            #tu zmienić na liste gier jak będzie
+            return redirect(url_for("list_of_leagues"))
+    
     return render_template("addgame.html", leagues=leagues)
 
 #partials
@@ -756,7 +781,7 @@ def addgame():
 def getteams():
     league=request.args.get('league')
     if not league:
-        return redirect(url_for("addgame"))
+        return render_template("partials/blank.html")
     cur=mysql.cursor(dictionary=True)
     cur.execute("SELECT id, name FROM teams WHERE id_league=%s",(league,))
     teams=cur.fetchall()
