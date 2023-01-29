@@ -219,7 +219,7 @@ def footballerHistory(footballer_id):
                 """, (footballer_id,footballer_id))    
     position_history_content = cur.fetchall()
 
-    club_history_content2 = club_history_content[::-1] + [{'dateFrom':date.today()}]
+    club_history_content2 = club_history_content[::-1] + [{'dateFrom':date(9999,12,31)}]
     games_history_content = []
 
     for i in range(len(club_history_content2)-1):
@@ -757,6 +757,20 @@ def addgame():
             gamedate=request.form.get('gamedate')
             if league and home and away and gamedate:
                 cur.execute("INSERT INTO games(id_home,id_away,date) VALUES(%s,%s,%s)",(home,away,gamedate))
+                last_game_id=cur.lastrowid
+                if request.form.getlist('players[]') and request.form.getlist('players_ac[]') and request.form.getlist('ac_time[]'):
+                    players=request.form.getlist('players[]')
+                    players_ac=request.form.getlist('players_ac[]')
+                    ac_time=request.form.getlist('ac_time[]')
+                    if len(players) == len(players_ac) == len(ac_time):
+                        for i in range(0, len(players)):
+                            cur.execute("INSERT INTO actionsinmatch(id_match,id_footballer,id_action,time) VALUES(%s,%s,%s,%s)",(last_game_id,players[i],players_ac[i],ac_time[i]))     
+                    else:
+                        cur.close()
+                        flash("liczba akcji jest niezgodna z liczbą piłkarzy","alert alert-danger alert-dismissible")
+                        return redirect(url_for("addgame")) 
+                    
+                    
                 cur.close()
                 mysql.commit()
                 flash("Pomyślnie dodano rozgrywkę","alert alert-success alert-dismissible")
