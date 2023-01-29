@@ -737,6 +737,52 @@ def league_table(league_id):
     
     return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons, year=int(year))
 
+@app.route('/addgame', methods=["POST","GET"])
+
+def addgame():
+    cur = mysql.cursor(dictionary=True)
+    cur.execute(""" SELECT l.name AS name, l.id AS id
+                FROM league as l
+                INNER JOIN teams as t ON l.id = t.id_league
+                GROUP BY l.id HAVING COUNT(t.id) >= 2;""")
+    leagues=cur.fetchall()
+    cur.close()
+    
+    return render_template("addgame.html", leagues=leagues)
+
+#partials
+@app.get('/getteams')
+
+def getteams():
+    league=request.args.get('league')
+    if not league:
+        return redirect(url_for("addgame"))
+    cur=mysql.cursor(dictionary=True)
+    cur.execute("SELECT id, name FROM teams WHERE id_league=%s",(league,))
+    teams=cur.fetchall()
+    cur.close()
+    return render_template("partials/getteams.html",teams=teams)
+
+@app.get('/getplayers')
+
+def getplayers():
+    home=request.args.get('home')
+    away=request.args.get('away')
+    date=request.args.get('gamedate')
+    if not home or not away or not date:
+        return render_template("partials/blank.html")
+    cur=mysql.cursor(dictionary=True)
+    cur.execute("""
+                SELECT f.id AS ftid, CONCAT(t.name,'-',f.name, ' ', f.lastName) AS player
+                FROM clubhistory AS ch
+                LEFT JOIN teams as t ON t.id = ch.id_team
+                LEFT JOIN footballer as f ON f.id = ch.id_footballer 
+                WHERE t.id IN(%s,%s) AND dateFrom = (SELECT MAX(dateFrom) FROM clubhistory as ch2 WHERE ch2.id_footballer =ch.id_footballer AND ch2.dateFrom<=%s )""", (home,away,date))
+    players=cur.fetchall()
+    cur.execute("SELECT id, name FROM actions")
+    action_list = cur.fetchall()
+    cur.close()
+    return render_template("partials/getplayers.html", players=players, actions=action_list)
 #invalid URL
 @app.errorhandler(404)
 

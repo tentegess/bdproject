@@ -1,0 +1,21 @@
+
+
+<div class="col-4 ps-0">
+    <select class="form-control teams" name="home" hx-get="/getplayers"  hx-include="[name='away'], [name='gamedate']" hx-trigger="change" hx-target=".actions" id="home" onchange="checkteam()" required>
+        <option disabled selected hidden value="null">Drużyna gospodarza</option>
+        {% for team in teams%}
+        <option value="{{team.id}}">{{team.name}}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-4 pe-0">
+    <select class="form-control teams" name="away" hx-get="/getplayers"  hx-include="[name='home'], [name='gamedate']" hx-trigger="change" hx-target=".actions" onchange="checkteam()" id="away" required>
+        <option disabled selected hidden value="null">Drużyna gości</option>
+        {% for team in teams%}
+        <option value="{{team.id}}">{{team.name}}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-4 pe-0">
+    <input type="date" class="form-control" id="data" hx-get="/getplayers" hx-include="[name='home'], [name='away']" name="gamedate" hx-target=".actions" hx-trigger="change" disabled>
+</div>   
