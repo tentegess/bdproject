@@ -139,10 +139,10 @@ def list_of_ft():
                 COALESCE(t.name, 'Brak drużyny') as team 
                 FROM footballer as f 
                 LEFT JOIN clubhistory as ch ON f.id = ch.id_footballer AND dateFROM is not NULL
-                LEFT JOIN teams as t ON ch.id_team = t.id
-                LEFT JOIN games as g ON g.id_home = t.id AND YEAR(g.date) = %s
-                WHERE dateFrom = (SELECT MAX(dateFROM) FROM clubhistory WHERE id_footballer = f.id ) OR dateFROM IS NULL
-                GROUP BY f.id ORDER BY f.id""", (year,)) 
+                LEFT JOIN teams as t ON ch.id_team = t.id 
+                LEFT JOIN games as g ON g.id_home = t.id AND YEAR(g.date) = %s 
+                WHERE dateFrom = (SELECT MAX(dateFROM) FROM clubhistory WHERE id_footballer = f.id AND YEAR(dateFrom) <= %s) OR dateFROM IS NULL 
+                GROUP BY f.id ORDER BY f.id""", (year,year)) 
 
     table_content = cur.fetchall()
     mysql.commit()
