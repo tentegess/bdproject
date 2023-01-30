@@ -70,6 +70,7 @@ def addft():
                                    history_teams[i]=None 
                                 cur.execute("INSERT INTO clubhistory(id_footballer, id_team, dateFrom) VALUES(%s,%s,%s)",(last_ft_id,history_teams[i], teams_dates[i]))
                         else:
+                            cur.close()
                             flash("liczba klubów jest różna od liczby dat","alert alert-danger alert-dismissible")
                             return render_template("addfootballer.html", teams=teams_list, positions=positions_list) 
                 if positions and positions_date:
@@ -101,14 +102,14 @@ def list_of_ft():
     action_list_values = []
 
     cur.execute("""SELECT DISTINCT YEAR(date) as year FROM games ORDER BY date DESC;""")
-    seasons = cur.fetchone()
+    seasons = cur.fetchall()
 
     
     if request.method == "POST":
         year = request.form.get('season_select')
     else:
         if seasons:
-            year = seasons['year']
+            year = seasons[0]['year']
         else:
             year = date.today().year
             seasons = [{'year':int(year)}]
@@ -194,7 +195,6 @@ def footballerHistory(footballer_id):
 
     actions=dict(zip(actions_names, list(map(lambda x: x['counted'], action_values))))
     
-    print(actions)
 
     cur.execute("""
                 SELECT COALESCE(t.name,'Brak drużyny') AS club_name, COALESCE(dateFrom,'') as dateFrom
@@ -342,7 +342,7 @@ def list_of_clubs():
         year = request.form.get('season_select')
     else:
         if seasons:
-            year = seasons['year']
+            year = seasons[0]['year']
         else:
             year = date.today().year
             seasons = [{'year':int(year)}]
@@ -387,7 +387,6 @@ def addclub():
             cur = mysql.cursor()
             cur.execute("""SELECT COUNT(name) as counter FROM teams WHERE name=%s""",(name,))
             counter=cur.fetchone()
-            print(counter)
             if counter[0]>0:
                 cur.close()
                 flash("Podana drużyna istnieje w bazie","alert alert-danger alert-dismissible")
@@ -432,7 +431,6 @@ def club_history(club_id):
     cur.execute("""SELECT name FROM teams AS t WHERE t.id = %s""", (club_id,))
         
     name = cur.fetchone()
-    print(name)
     if not name:
         cur.close()
         flash("Wybrana drużyna nie istnieje","alert alert-danger alert-dismissible")
@@ -690,6 +688,7 @@ def league_history(league_id):
                 GROUP BY g.id ORDER BY g.date DESC;
                 """, (league_id,))
     games_history = cur.fetchall()
+    cur.close()
     
     return render_template("league_history.html", leagues=league, games_history=games_history)
 
@@ -718,7 +717,7 @@ def league_table(league_id):
         year = request.form.get('season_select')
     else:
         if seasons:
-            year = seasons['year']
+            year = seasons[0]['year']
         else:
             year = date.today().year
             seasons = [{'year':int(year)}]
@@ -745,6 +744,7 @@ def league_table(league_id):
                     GROUP BY g.id) as g ON g.id_home = t.id OR g.id_away = t.id
                 WHERE l.id=%s  GROUP BY t.id ORDER BY league_points DESC;""",(year,year,league_id))
     table_content = cur.fetchall()
+    cur.close()
     
     return render_template("league_table.html", leagues=league, headings=headings, row=table_content, seasons=seasons, year=int(year))
 
@@ -857,6 +857,7 @@ def list_of_games():
                 GROUP BY g.id ) as g2 ON (g2.id_home = t1.id  OR g2.id_away = t2.id ) AND g.date = g2.date
             GROUP BY g.id ORDER BY g.date DESC;""")
     games_history = cur.fetchall()
+    cur.close()
 
     return render_template("list_of_games.html", headings=headings, row=games_history)
 
@@ -888,6 +889,7 @@ def game_history(game_id):
                 LEFT JOIN actions as a ON a.id = am.id_action
                 WHERE g.id = %s ORDER BY am.time DESC;""",(game_id,))
     actions = cur.fetchall()
+    cur.close()
     
     return render_template("game_history.html", game=game, actions=actions)
 
