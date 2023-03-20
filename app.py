@@ -17,7 +17,7 @@ mysql = mysql.connector.connect(
     database = db['mysql_db']
 )
 
-app.config['SECRET_KEY']="Arek"
+app.config['SECRET_KEY']="Your secret key"
 
 #main
 
